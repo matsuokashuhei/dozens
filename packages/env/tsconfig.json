@@ -1,0 +1,3 @@
+{
+  "extends": "@dozens/config/tsconfig.base.json"
+}

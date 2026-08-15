@@ -1,0 +1,28 @@
+{
+  "name": "@dozens/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@dozens/db": "*",
+    "@dozens/env": "*",
+    "@orpc/client": "^1.14.12",
+    "@orpc/openapi": "^1.14.12",
+    "@orpc/server": "^1.14.12",
+    "@orpc/zod": "^1.14.12",
+    "dotenv": "^17.4.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@dozens/config": "*",
+    "hono": "^4.12.32",
+    "typescript": "^6.0.3"
+  }
+}

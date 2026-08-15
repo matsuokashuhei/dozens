@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "scheme": "dozens",
+    "userInterfaceStyle": "automatic",
+    "orientation": "default",
+    "web": {
+      "bundler": "metro"
+    },
+    "name": "dozens",
+    "slug": "dozens",
+    "plugins": ["expo-font"],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

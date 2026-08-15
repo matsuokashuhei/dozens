@@ -1,0 +1,45 @@
+{
+  "name": "dozens",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "check-types": "turbo run check-types",
+    "dev:native": "turbo run dev -F native --",
+    "dev:web": "turbo run dev -F web --",
+    "dev:server": "turbo run dev -F server --",
+    "db:push": "turbo run db:push -F @dozens/db --",
+    "db:studio": "turbo run db:studio -F @dozens/db --",
+    "db:generate": "turbo run db:generate -F @dozens/db --",
+    "db:migrate": "turbo run db:migrate -F @dozens/db --",
+    "db:start": "docker compose up -d postgres",
+    "db:watch": "docker compose up postgres",
+    "db:stop": "docker compose stop postgres",
+    "db:down": "docker compose down postgres",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "dependencies": {
+    "@dozens/env": "*",
+    "dotenv": "^17.4.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@dozens/config": "*",
+    "@types/node": "^22.20.1",
+    "turbo": "^2.10.7",
+    "typescript": "^6.0.3"
+  },
+  "packageManager": "npm@12.0.1",
+  "allowScripts": {
+    "esbuild": true,
+    "sharp": true
+  }
+}
