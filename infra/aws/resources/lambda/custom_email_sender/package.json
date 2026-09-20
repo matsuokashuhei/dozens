@@ -1,0 +1,10 @@
+{
+    "name": "dozens-custom-email-sender",
+    "private": true,
+    "type": "commonjs",
+    "dependencies": {
+      "@aws-crypto/client-node": "^5.0.2",
+      "@aws-sdk/client-ses": "^3.1136.0"
+    }
+  }
+  
