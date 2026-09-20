@@ -1,0 +1,13 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "api"
+path = "src/bin/api.rs"
+
+[dependencies]
+axum = "0.8.9"
+tokio = { version = "1.53.1", features = ["rt-multi-thread"] }
+tracing-subscriber = "0.3.23"
