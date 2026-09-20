@@ -1,0 +1,45 @@
+{
+    "name": "api",
+    "dockerComposeFile": [
+        "../compose.yml",
+        "compose.yml"
+    ],
+    "service": "api",
+    "workspaceFolder": "/dozens",
+    "initializeCommand": "sh ./.devcontainer/initialize.sh",
+    "postCreateCommand": "sh ./apps/.devcontainer/post-create.sh",
+    "containerEnv": {
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {},
+        "ghcr.io/devcontainers/features/aws-cli:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        "ghcr.io/devcontainers/features/terraform:1": {},
+        "ghcr.io/devcontainers/features/node:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "fill-labs.dependi",
+                "GitHub.vscode-pull-request-github",
+                "rust-lang.rust-analyzer",
+                "tamasfe.even-better-toml",
+                "vadimcn.vscode-lldb"
+            ],
+            "settings": {
+                "[rust]": {
+                    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+                    "editor.formatOnSave": true,
+                    "editor.codeActionsOnSave": {
+                        "source.organizeImports": "always"
+                    },
+                    "rust-analyzer.checkOnSave.command": "clippy"
+                },
+                "[terraform]": {
+                    "editor.defaultFormatter": "hashicorp.terraform",
+                    "editor.formatOnSave": true
+                }
+            }
+        }
+    }
+}
