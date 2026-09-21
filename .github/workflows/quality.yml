@@ -1,0 +1,93 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup component add clippy rustfmt llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/api
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Lint
+        run: cargo clippy --all-targets --all-features -- -Dwarnings
+      - name: Test
+        run: cargo test --all-features
+      - name: Coverage
+        run: |
+          cargo install cargo-llvm-cov --locked
+          cargo llvm-cov --all-features --lcov --output-path lcov.info
+      - name: Unused dependencies
+        run: |
+          cargo install cargo-machete --locked
+          cargo machete
+      - name: Module cycles
+        run: |
+          cargo install cargo-modules --locked
+          cargo modules dependencies --lib --acyclic
+      - name: Coupling instability
+        run: |
+          curl -fsSL -o codelore.tar.gz "https://github.com/emrecdr/codelore/releases/download/v0.30.0/codelore-v0.30.0-x86_64-unknown-linux-gnu.tar.gz"
+          tar -xzf codelore.tar.gz
+          PATH="$PWD:$PATH" sh "$GITHUB_WORKSPACE/scripts/quality/instability.sh" "$GITHUB_WORKSPACE"
+      - name: Clippy report
+        run: cargo clippy --message-format=json --all-targets --all-features > clippy-report.json || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rust-reports
+          path: |
+            apps/api/lcov.info
+            apps/api/clippy-report.json
+
+  sonar:
+    runs-on: ubuntu-latest
+    needs: rust
+    services:
+      sonarqube:
+        image: sonarqube:community
+        ports:
+          - 9000:9000
+        env:
+          SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: rust-reports
+      - name: Wait for SonarQube
+        run: |
+          for _ in $(seq 1 60); do
+            if curl -fsS http://localhost:9000/api/system/status | grep -q '"status":"UP"'; then exit 0; fi
+            sleep 5
+          done
+          echo "SonarQube did not become ready"
+          exit 1
+      - name: Generate token
+        run: |
+          token=$(curl -fsS -u admin:admin -X POST "http://localhost:9000/api/user_tokens/generate?name=ci-$GITHUB_RUN_ID" | jq -r .token)
+          echo "SONAR_TOKEN=$token" >> "$GITHUB_ENV"
+      - name: Provision quality gate
+        env:
+          SONAR_HOST_URL: http://localhost:9000
+        run: sh infra/sonar/provision.sh
+      - name: Scan
+        uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_HOST_URL: http://localhost:9000
+        with:
+          args: -Dsonar.qualitygate.wait=true
