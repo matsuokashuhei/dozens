@@ -9,9 +9,6 @@ enforces each one.
 |---|---|---|
 | Cyclomatic complexity | 10, reported only | SonarQube metric |
 | Cognitive complexity | 10 | SonarQube rule S3776 |
-| Function length | Clippy default (100) | clippy `too_many_lines` |
-| Parameter count | Clippy default (7) | clippy `too_many_arguments` |
-| Nesting depth | Clippy default | clippy `excessive_nesting` |
 | Coupling instability | fail when `ca >= 5` and `instability > 0.5` | codelore `instability` |
 | Import cycles | 0 | cargo-modules `--acyclic` |
 | Unused dependencies | 0 | cargo-machete |
@@ -20,9 +17,9 @@ enforces each one.
 
 ## Where each metric lives
 
-Rust settings live in two files. `apps/api/Cargo.toml` denies the Clippy
-length, argument, and nesting lints (at Clippy defaults) and all warnings.
-`apps/api/rustfmt.toml` pins formatting.
+Rust settings live in two files. `apps/api/Cargo.toml` sets
+`warnings = "deny"`. `apps/api/rustfmt.toml` pins the format edition.
+Clippy uses its default lint set. CI passes `-Dwarnings` so warnings fail the job.
 
 `sonar-project.properties` points the scanner at the crate, the LCOV
 report, and the clippy report. `infra/sonar/docker-compose.yml` runs a
@@ -78,7 +75,6 @@ SONAR_HOST_URL=http://localhost:9000 SONAR_TOKEN=<token> sh infra/sonar/provisio
 
 - Cognitive Complexity, SonarSource: https://www.sonarsource.com/resources/cognitive-complexity/
 - SonarQube Rust analyzer: https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/languages/rust
-- Clippy lint configuration: https://doc.rust-lang.org/stable/clippy/lint_configuration.html
 - Clippy in CI: https://doc.rust-lang.org/clippy/continuous_integration/github_actions.html
 - OO design quality metrics, Robert C. Martin: http://objectmentor.com/resources/articles/oodmetrc.pdf
 - A metrics suite for object oriented design, Chidamber and Kemerer: https://www.cs.kent.edu/~jmaletic/cs63901/lectures/Chidamber94.pdf
