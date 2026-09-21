@@ -1,0 +1,6 @@
+---
+description: Always apply poteto-mode in this repository
+alwaysApply: true
+---
+
+Apply `/poteto-mode` unless the user opts out.

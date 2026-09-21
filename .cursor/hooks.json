@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "jq -n --arg c 'Apply /poteto-mode.' '{additional_context: $c}'"
+      }
+    ]
+  }
+}
