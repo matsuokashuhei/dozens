@@ -13,7 +13,6 @@ cargo test --all-features
 ```
 
 Run the commands from `apps/api`, or pass `--manifest-path apps/api/Cargo.toml`.
-`clippy.toml` sits at the crate root, so clippy only reads it from there.
 
 ## Quality metrics
 

@@ -9,9 +9,9 @@ enforces each one.
 |---|---|---|
 | Cyclomatic complexity | 10, reported only | SonarQube metric |
 | Cognitive complexity | 10 | SonarQube rule S3776 |
-| Function length | 40 lines | clippy `too_many_lines` |
-| Parameter count | 3 | clippy `too_many_arguments` |
-| Nesting depth | 4 | clippy `excessive_nesting` |
+| Function length | Clippy default (100) | clippy `too_many_lines` |
+| Parameter count | Clippy default (7) | clippy `too_many_arguments` |
+| Nesting depth | Clippy default | clippy `excessive_nesting` |
 | Coupling instability | fail when `ca >= 5` and `instability > 0.5` | codelore `instability` |
 | Import cycles | 0 | cargo-modules `--acyclic` |
 | Unused dependencies | 0 | cargo-machete |
@@ -20,9 +20,9 @@ enforces each one.
 
 ## Where each metric lives
 
-Rust settings live in three files. `apps/api/clippy.toml` holds the clippy
-thresholds. `apps/api/Cargo.toml` denies the threshold lints and all
-warnings. `apps/api/rustfmt.toml` pins formatting.
+Rust settings live in two files. `apps/api/Cargo.toml` denies the Clippy
+length, argument, and nesting lints (at Clippy defaults) and all warnings.
+`apps/api/rustfmt.toml` pins formatting.
 
 `sonar-project.properties` points the scanner at the crate, the LCOV
 report, and the clippy report. `infra/sonar/docker-compose.yml` runs a
@@ -43,8 +43,7 @@ format, lints, tests, coverage, unused dependencies, import cycles, and
 coupling instability. The `sonar` job scans with the SonarQube Rust
 analyzer and waits for the quality gate.
 
-Clippy reads `clippy.toml` from the crate root, so run cargo commands in
-`apps/api`.
+Run cargo commands in `apps/api`, or pass `--manifest-path apps/api/Cargo.toml`.
 
 ## Local commands
 
