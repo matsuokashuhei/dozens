@@ -8,8 +8,7 @@
     "workspaceFolder": "/dozens",
     "initializeCommand": "sh ./.devcontainer/initialize.sh",
     "postCreateCommand": "sh ./apps/.devcontainer/post-create.sh",
-    "containerEnv": {
-    },
+    "containerEnv": {},
     "features": {
         "ghcr.io/devcontainers/features/common-utils:2": {},
         "ghcr.io/devcontainers/features/aws-cli:1": {},
@@ -28,17 +27,20 @@
             ],
             "settings": {
                 "[rust]": {
-                    "editor.defaultFormatter": "rust-lang.rust-analyzer",
-                    "editor.formatOnSave": true,
                     "editor.codeActionsOnSave": {
-                        "source.organizeImports": "always"
+                        "source.fixAll": "always"
                     },
-                    "rust-analyzer.checkOnSave.command": "clippy"
+                    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+                    "editor.formatOnSave": true
                 },
                 "[terraform]": {
                     "editor.defaultFormatter": "hashicorp.terraform",
                     "editor.formatOnSave": true
-                }
+                },
+                "rust-analyzer.linkedProjects": [
+                    "apps/api/Cargo.toml"
+                ],
+                "rust-analyzer.check.command": "clippy"
             }
         }
     }
