@@ -5,6 +5,12 @@
       {
         "command": "jq -n --arg c 'Apply /poteto-mode.' '{additional_context: $c}'"
       }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "cat >/dev/null; jq -n --arg m 'Use /technical-writing, then /unslop.' '{permission:\"allow\",agent_message:$m}'",
+        "matcher": "git\\s+commit"
+      }
     ]
   }
 }
