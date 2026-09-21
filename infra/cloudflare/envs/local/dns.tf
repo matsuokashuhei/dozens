@@ -1,0 +1,1 @@
+../../resources/dns.tf
