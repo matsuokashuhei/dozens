@@ -7,11 +7,14 @@ enforces each one.
 
 | Metric | Threshold | Enforced by |
 |---|---|---|
-| Cyclomatic complexity | 10, reported only | SonarQube metric |
-| Cognitive complexity | 10 | SonarQube rule S3776 |
+| Cyclomatic complexity | reported only | SonarQube metric |
+| Cognitive complexity | 15 | Sonar way, rule S3776 |
+| New issues | 0 | Sonar way |
+| New security hotspots reviewed | 100% | Sonar way |
+| New code coverage | 80% | cargo-llvm-cov and Sonar way |
+| New code duplication | 3% | Sonar way |
 | Propagation cost | 1.0 | codelore `check` |
 | Unused dependencies | 0 | cargo-machete |
-| Coverage | 85 overall, 90 new code | cargo-llvm-cov and SonarQube |
 | Compiler and lint warnings | 0 | `-Dwarnings` |
 
 ## Where each metric lives
@@ -21,19 +24,14 @@ Rust settings live in two files. `apps/api/Cargo.toml` sets
 Clippy uses its default lint set. CI passes `-Dwarnings` so warnings fail the job.
 
 `sonar-project.properties` points the scanner at the crate and the LCOV
-report. `infra/sonar/docker-compose.yml` runs a
-local SonarQube. `infra/sonar/quality-gate.json` holds the gate
-conditions and the rule parameters. `infra/sonar/provision.sh` creates
-the project and the gate, clears the conditions Sonar copies onto a new
-gate, applies `quality-gate.json`, assigns the gate, copies the Rust
-profile to `Dozenz Rust`, makes it the default, and sets the
-`rust:S3776` threshold to 10.
+report. `infra/sonar/docker-compose.yml` runs a local SonarQube. The
+scan uses the built-in Sonar way gate and the built-in Rust profile.
+The scanner creates the project on the first analysis.
 
 The Rust analyzer reports cyclomatic complexity as a metric. It has no
-cyclomatic rule, so the gate cannot fail on that number. The cognitive
-complexity rule S3776 carries the threshold. The gate ignores a coverage
-condition until a coverage report for the project exists, so the strict
-coverage thresholds apply only after the first report is imported.
+cyclomatic rule, so the gate cannot fail on that number. Sonar way
+ignores a coverage condition until a coverage report for the project
+exists.
 
 `.github/workflows/quality.yml` runs three jobs. The `rust` job checks
 format, lints, tests, coverage, and unused dependencies. The `sonar` job
@@ -68,11 +66,11 @@ cargo modules dependencies --lib --acyclic
 codelore check --repo .
 ```
 
-For SonarQube, start the server and apply the gate.
+For SonarQube, start the server. The first analysis creates the project
+on Sonar way.
 
 ```
 docker compose -f infra/sonar/docker-compose.yml up -d
-SONAR_HOST_URL=http://localhost:9000 SONAR_TOKEN=<token> sh infra/sonar/provision.sh
 ```
 
 ## Sources
