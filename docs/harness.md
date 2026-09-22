@@ -21,8 +21,8 @@ Rust settings live in two files. `apps/api/Cargo.toml` sets
 `warnings = "deny"`. `apps/api/rustfmt.toml` pins the format edition.
 Clippy uses its default lint set. CI passes `-Dwarnings` so warnings fail the job.
 
-`sonar-project.properties` points the scanner at the crate, the LCOV
-report, and the clippy report. `infra/sonar/docker-compose.yml` runs a
+`sonar-project.properties` points the scanner at the crate and the LCOV
+report. `infra/sonar/docker-compose.yml` runs a
 local SonarQube. `infra/sonar/quality-gate.json` holds the gate
 conditions and the rule parameters. `infra/sonar/provision.sh` creates
 the project if it is missing, replaces the gate conditions, assigns the

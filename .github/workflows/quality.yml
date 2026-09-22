@@ -43,14 +43,10 @@ jobs:
           curl -fsSL -o codelore.tar.gz "https://github.com/emrecdr/codelore/releases/download/v0.30.0/codelore-v0.30.0-x86_64-unknown-linux-gnu.tar.gz"
           tar -xzf codelore.tar.gz
           PATH="$PWD:$PATH" sh "$GITHUB_WORKSPACE/scripts/quality/instability.sh" "$GITHUB_WORKSPACE"
-      - name: Clippy report
-        run: cargo clippy --message-format=json --all-targets --all-features > clippy-report.json || true
       - uses: actions/upload-artifact@v4
         with:
           name: rust-reports
-          path: |
-            apps/api/lcov.info
-            apps/api/clippy-report.json
+          path: apps/api/lcov.info
 
   sonar:
     runs-on: ubuntu-latest
