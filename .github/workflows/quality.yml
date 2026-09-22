@@ -1,0 +1,51 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup component add clippy rustfmt llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/api
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Lint
+        run: |
+          cargo clippy --all-targets --all-features -- -Dwarnings
+          cargo clippy --message-format=json --all-targets --all-features -- -Dwarnings > clippy.json
+      - name: Test
+        run: cargo test --all-features
+      - name: Coverage
+        run: |
+          cargo install cargo-llvm-cov --locked
+          cargo llvm-cov --all-features --lcov --output-path lcov.info
+      - name: Unused dependencies
+        run: |
+          cargo install cargo-machete --locked
+          cargo machete
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rust-reports
+          path: |
+            apps/api/lcov.info
+            apps/api/clippy.json
+
+  sonar:
+    needs: rust
+    uses: ./.github/workflows/sonar.yml
+
+  codelore:
+    uses: ./.github/workflows/codelore.yml

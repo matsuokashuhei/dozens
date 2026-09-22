@@ -5,7 +5,7 @@ FROM base AS dev
 RUN <<EOT
 apt-get update
 apt-get install -y curl pkg-config libssl-dev
-cargo install cargo-watch cargo-llvm-cov llvm-tools-preview
+cargo install cargo-watch cargo-llvm-cov cargo-modules llvm-tools-preview
 rustup component add clippy rustfmt
 EOT
 
