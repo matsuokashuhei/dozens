@@ -49,6 +49,12 @@ jobs:
           - 9000:9000
         env:
           SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+        options: >-
+          --health-cmd "curl -fsS http://127.0.0.1:9000/api/system/status | grep -q '\"status\":\"UP\"'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-start-period 120s
+          --health-retries 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,14 +62,6 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: rust-reports
-      - name: Wait for SonarQube
-        run: |
-          for _ in $(seq 1 60); do
-            if curl -fsS http://localhost:9000/api/system/status | grep -q '"status":"UP"'; then exit 0; fi
-            sleep 5
-          done
-          echo "SonarQube did not become ready"
-          exit 1
       - name: Generate token
         run: |
           token=$(curl -fsS -u admin:admin -X POST "http://localhost:9000/api/user_tokens/generate?name=ci-$GITHUB_RUN_ID" | jq -r .token)
