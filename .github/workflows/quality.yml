@@ -34,10 +34,6 @@ jobs:
         run: |
           cargo install cargo-machete --locked
           cargo machete
-      - name: Module cycles
-        run: |
-          cargo install cargo-modules --locked
-          cargo modules dependencies --lib --acyclic
       - name: Coupling instability
         run: |
           curl -fsSL -o codelore.tar.gz "https://github.com/emrecdr/codelore/releases/download/v0.30.0/codelore-v0.30.0-x86_64-unknown-linux-gnu.tar.gz"

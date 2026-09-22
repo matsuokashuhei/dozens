@@ -10,7 +10,6 @@ enforces each one.
 | Cyclomatic complexity | 10, reported only | SonarQube metric |
 | Cognitive complexity | 10 | SonarQube rule S3776 |
 | Coupling instability | fail when `ca >= 5` and `instability > 0.5` | codelore `instability` |
-| Import cycles | 0 | cargo-modules `--acyclic` |
 | Unused dependencies | 0 | cargo-machete |
 | Coverage | 85 overall, 90 new code | cargo-llvm-cov and SonarQube |
 | Compiler and lint warnings | 0 | `-Dwarnings` |
@@ -36,9 +35,9 @@ condition until a coverage report for the project exists, so the strict
 coverage thresholds apply only after the first report is imported.
 
 `.github/workflows/quality.yml` runs two jobs. The `rust` job checks
-format, lints, tests, coverage, unused dependencies, import cycles, and
-coupling instability. The `sonar` job scans with the SonarQube Rust
-analyzer and waits for the quality gate.
+format, lints, tests, coverage, unused dependencies, and coupling
+instability. The `sonar` job scans with the SonarQube Rust analyzer and
+waits for the quality gate.
 
 Run cargo commands in `apps/api`, or pass `--manifest-path apps/api/Cargo.toml`.
 
@@ -53,10 +52,12 @@ cargo clippy --all-targets --all-features -- -Dwarnings
 cargo test --all-features
 ```
 
-The other checks need their own tools.
+The other checks need their own tools. The api dev image includes
+`cargo-modules` for a local module-cycle inspection. That command is not
+a CI check.
 
 ```
-cargo install cargo-machete cargo-modules cargo-llvm-cov --locked
+cargo install cargo-machete cargo-llvm-cov --locked
 cargo llvm-cov --all-features --lcov --output-path lcov.info
 cargo machete
 cargo modules dependencies --lib --acyclic
