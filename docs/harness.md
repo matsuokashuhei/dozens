@@ -9,7 +9,7 @@ enforces each one.
 |---|---|---|
 | Cyclomatic complexity | 10, reported only | SonarQube metric |
 | Cognitive complexity | 10 | SonarQube rule S3776 |
-| Coupling instability | fail when `ca >= 5` and `instability > 0.5` | codelore `instability` |
+| Propagation cost | 0.35 | codelore `check` |
 | Unused dependencies | 0 | cargo-machete |
 | Coverage | 85 overall, 90 new code | cargo-llvm-cov and SonarQube |
 | Compiler and lint warnings | 0 | `-Dwarnings` |
@@ -34,10 +34,11 @@ complexity rule S3776 carries the threshold. The gate ignores a coverage
 condition until a coverage report for the project exists, so the strict
 coverage thresholds apply only after the first report is imported.
 
-`.github/workflows/quality.yml` runs two jobs. The `rust` job checks
-format, lints, tests, coverage, unused dependencies, and coupling
-instability. The `sonar` job scans with the SonarQube Rust analyzer and
-waits for the quality gate.
+`.github/workflows/quality.yml` runs three jobs. The `rust` job checks
+format, lints, tests, coverage, and unused dependencies. The `sonar` job
+scans with the SonarQube Rust analyzer and waits for the quality gate.
+The `codelore` job checks out full history and runs `codelore check`
+against `.codelore-thresholds.toml`.
 
 Run cargo commands in `apps/api`, or pass `--manifest-path apps/api/Cargo.toml`.
 
@@ -61,8 +62,7 @@ cargo install cargo-machete cargo-llvm-cov --locked
 cargo llvm-cov --all-features --lcov --output-path lcov.info
 cargo machete
 cargo modules dependencies --lib --acyclic
-codelore analyze --analysis instability --repo . --format json
-sh scripts/quality/instability.sh .
+codelore check --repo .
 ```
 
 For SonarQube, start the server and apply the gate.

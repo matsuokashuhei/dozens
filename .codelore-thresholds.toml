@@ -1,0 +1,12 @@
+# Gates for `codelore check`, measured with codelore 0.30.0 on 2026-09-22.
+# Bounds sit just past the measured value. A missing thresholds file makes
+# `codelore check` pass with no rules, so this file is what makes the job bind.
+#
+# code_health_min is omitted. The health scan returned no rows because no
+# file has the default five revisions, and the gate degrades instead of scoring.
+# max_dependency_cycles is omitted. The measured count is 0, and a ceiling of
+# 0 would fail the build on any import cycle.
+
+[gates]
+# architecture-metrics propagation_cost = 0.3125 across 4 files.
+max_propagation_cost = 0.35

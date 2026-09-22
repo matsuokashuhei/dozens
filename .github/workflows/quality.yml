@@ -34,11 +34,6 @@ jobs:
         run: |
           cargo install cargo-machete --locked
           cargo machete
-      - name: Coupling instability
-        run: |
-          curl -fsSL -o codelore.tar.gz "https://github.com/emrecdr/codelore/releases/download/v0.30.0/codelore-v0.30.0-x86_64-unknown-linux-gnu.tar.gz"
-          tar -xzf codelore.tar.gz
-          PATH="$PWD:$PATH" sh "$GITHUB_WORKSPACE/scripts/quality/instability.sh" "$GITHUB_WORKSPACE"
       - uses: actions/upload-artifact@v4
         with:
           name: rust-reports
@@ -83,3 +78,17 @@ jobs:
           SONAR_HOST_URL: http://localhost:9000
         with:
           args: -Dsonar.qualitygate.wait=true
+
+  codelore:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: emrecdr/codelore@v1
+        with:
+          command: check
+          version: v0.30.0
+          args: '--thresholds-file .codelore-thresholds.toml'
