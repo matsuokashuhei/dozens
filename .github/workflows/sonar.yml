@@ -42,22 +42,8 @@ jobs:
           token=$(curl -fsS -u admin:admin -X POST "http://localhost:9000/api/user_tokens/generate?name=ci-$GITHUB_RUN_ID" | jq -r .token)
           echo "SONAR_TOKEN=$token" >> "$GITHUB_ENV"
       - name: Scan
+        uses: SonarSource/sonarqube-scan-action@v8
         env:
           SONAR_HOST_URL: http://localhost:9000
-        run: |
-          set -o pipefail
-          curl -fsSL -o /tmp/sonar-scanner.zip \
-            https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-8.1.0.6389-linux-x64.zip
-          unzip -q /tmp/sonar-scanner.zip -d /tmp
-          /tmp/sonar-scanner-8.1.0.6389-linux-x64/bin/sonar-scanner \
-            -Dsonar.qualitygate.wait=true \
-            -Dproject.settings=.github/workflows/sonar-project.properties \
-            2>&1 | tee /tmp/sonar-scanner.log
-          if grep -F "ERROR Failed to run Clippy" /tmp/sonar-scanner.log; then
-            echo "Clippy sensor failed. The scanner still exits 0 after that error."
-            exit 1
-          fi
-          if grep -F "No LCOV report files found" /tmp/sonar-scanner.log; then
-            echo "LCOV report was not imported."
-            exit 1
-          fi
+        with:
+          args: -Dsonar.qualitygate.wait=true -Dproject.settings=.github/workflows/sonar-project.properties
