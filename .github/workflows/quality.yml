@@ -23,7 +23,9 @@ jobs:
       - name: Format
         run: cargo fmt --all --check
       - name: Lint
-        run: cargo clippy --all-targets --all-features -- -Dwarnings
+        run: |
+          cargo clippy --all-targets --all-features -- -Dwarnings
+          cargo clippy --message-format=json --all-targets --all-features -- -Dwarnings > clippy.json
       - name: Test
         run: cargo test --all-features
       - name: Coverage
@@ -37,7 +39,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: rust-reports
-          path: apps/api/lcov.info
+          path: |
+            apps/api/lcov.info
+            apps/api/clippy.json
 
   sonar:
     needs: rust

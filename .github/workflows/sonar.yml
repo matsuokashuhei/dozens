@@ -26,6 +26,17 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: rust-reports
+      - name: Place reports
+        run: |
+          mkdir -p apps/api
+          if [ -f lcov.info ]; then
+            mv lcov.info apps/api/lcov.info
+          fi
+          if [ -f clippy.json ]; then
+            mv clippy.json apps/api/clippy.json
+          fi
+          test -s apps/api/lcov.info
+          test -s apps/api/clippy.json
       - name: Generate token
         run: |
           token=$(curl -fsS -u admin:admin -X POST "http://localhost:9000/api/user_tokens/generate?name=ci-$GITHUB_RUN_ID" | jq -r .token)
@@ -44,5 +55,9 @@ jobs:
             2>&1 | tee /tmp/sonar-scanner.log
           if grep -F "ERROR Failed to run Clippy" /tmp/sonar-scanner.log; then
             echo "Clippy sensor failed. The scanner still exits 0 after that error."
+            exit 1
+          fi
+          if grep -F "No LCOV report files found" /tmp/sonar-scanner.log; then
+            echo "LCOV report was not imported."
             exit 1
           fi
