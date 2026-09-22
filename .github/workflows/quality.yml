@@ -40,60 +40,8 @@ jobs:
           path: apps/api/lcov.info
 
   sonar:
-    runs-on: ubuntu-latest
     needs: rust
-    services:
-      sonarqube:
-        image: sonarqube:community
-        ports:
-          - 9000:9000
-        env:
-          SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
-        options: >-
-          --health-cmd "curl -fsS http://127.0.0.1:9000/api/system/status | grep -q '\"status\":\"UP\"'"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-start-period 120s
-          --health-retries 30
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/download-artifact@v4
-        with:
-          name: rust-reports
-      - name: Generate token
-        run: |
-          token=$(curl -fsS -u admin:admin -X POST "http://localhost:9000/api/user_tokens/generate?name=ci-$GITHUB_RUN_ID" | jq -r .token)
-          echo "SONAR_TOKEN=$token" >> "$GITHUB_ENV"
-      - name: Scan
-        uses: SonarSource/sonarqube-scan-action@v8
-        env:
-          SONAR_HOST_URL: http://localhost:9000
-        with:
-          args: -Dsonar.qualitygate.wait=true
+    uses: ./.github/workflows/sonar.yml
 
   codelore:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
-      - uses: emrecdr/codelore@v1
-        with:
-          command: check
-          version: v0.30.0
-          args: '--thresholds-file .codelore-thresholds.toml'
-      - name: Fetch base branch
-        if: github.event_name == 'pull_request'
-        run: git fetch origin ${{ github.base_ref }}
-      - name: Diff summary
-        if: github.event_name == 'pull_request'
-        run: |
-          codelore diff "origin/${{ github.base_ref }}...HEAD" \
-            --analysis all \
-            --fail-on none \
-            --format markdown >> "$GITHUB_STEP_SUMMARY"
+    uses: ./.github/workflows/codelore.yml

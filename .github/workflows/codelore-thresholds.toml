@@ -1,7 +1,6 @@
 # Gates for `codelore check`, measured with codelore 0.30.0 on 2026-09-22.
-# Bounds sit just past the measured value. A missing thresholds file makes
-# `codelore check` pass with no rules, so this file is what makes the job bind.
-# `.codeloreignore` drops `.opencode/**`, so this graph is the API only.
+# A missing thresholds file makes `codelore check` pass with no rules.
+# The workflow copies codeloreignore to the repo root, so this graph is the API only.
 #
 # code_health_min is omitted. The health scan returned no rows because no
 # file has the default five revisions, and the gate degrades instead of scoring.

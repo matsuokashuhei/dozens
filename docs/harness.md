@@ -23,10 +23,10 @@ Rust settings live in two files. `apps/api/Cargo.toml` sets
 `warnings = "deny"`. `apps/api/rustfmt.toml` pins the format edition.
 Clippy uses its default lint set. CI passes `-Dwarnings` so warnings fail the job.
 
-`sonar-project.properties` points the scanner at the crate and the LCOV
-report. `infra/sonar/docker-compose.yml` runs a local SonarQube. The
-scan uses the built-in Sonar way gate and the built-in Rust profile.
-The scanner creates the project on the first analysis.
+`.github/workflows/sonar-project.properties` points the scanner at the
+crate and the LCOV report. `infra/sonar/docker-compose.yml` runs a local
+SonarQube. The scan uses the built-in Sonar way gate and the built-in
+Rust profile. The scanner creates the project on the first analysis.
 
 The Rust analyzer reports cyclomatic complexity as a metric. It has no
 cyclomatic rule, so the gate cannot fail on that number. Sonar way
@@ -35,11 +35,14 @@ exists.
 
 `.github/workflows/quality.yml` runs three jobs. The `rust` job checks
 format, lints, tests, coverage, and unused dependencies. The `sonar` job
-scans with the SonarQube Rust analyzer and waits for the quality gate.
-The `codelore` job checks out full history and runs `codelore check`
-against `.codelore-thresholds.toml`. `.codeloreignore` keeps
-`.opencode/**` out of that graph. On a pull request the same job appends
-`codelore diff` to the run summary and does not fail the build on it.
+calls `.github/workflows/sonar.yml`, which scans with the SonarQube Rust
+analyzer and waits for the quality gate. The `codelore` job calls
+`.github/workflows/codelore.yml`, which checks out full history and runs
+`codelore check` against `.github/workflows/codelore-thresholds.toml`.
+That workflow copies `.github/workflows/codeloreignore` to the repo root
+because the tool only reads that filename there. The ignore drops
+`.opencode/**`. On a pull request the same job appends `codelore diff`
+to the run summary and does not fail the build on it.
 
 Run cargo commands in `apps/api`, or pass `--manifest-path apps/api/Cargo.toml`.
 
@@ -63,7 +66,9 @@ cargo install cargo-machete cargo-llvm-cov --locked
 cargo llvm-cov --all-features --lcov --output-path lcov.info
 cargo machete
 cargo modules dependencies --lib --acyclic
-codelore check --repo .
+cp .github/workflows/codeloreignore .codeloreignore
+codelore check --repo . --thresholds-file .github/workflows/codelore-thresholds.toml
+rm .codeloreignore
 ```
 
 For SonarQube, start the server. The first analysis creates the project

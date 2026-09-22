@@ -1,0 +1,33 @@
+name: Codelore
+
+on:
+  workflow_call:
+
+jobs:
+  codelore:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
+      # The tool loads this filename only from the repository root.
+      - name: Place codelore ignore
+        run: cp .github/workflows/codeloreignore .codeloreignore
+      - uses: emrecdr/codelore@v1
+        with:
+          command: check
+          version: v0.30.0
+          args: '--thresholds-file .github/workflows/codelore-thresholds.toml'
+      - name: Fetch base branch
+        if: github.event_name == 'pull_request'
+        run: git fetch origin ${{ github.base_ref }}
+      - name: Diff summary
+        if: github.event_name == 'pull_request'
+        run: |
+          codelore diff "origin/${{ github.base_ref }}...HEAD" \
+            --analysis all \
+            --fail-on none \
+            --format markdown >> "$GITHUB_STEP_SUMMARY"
