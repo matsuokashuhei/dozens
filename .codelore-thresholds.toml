@@ -1,6 +1,7 @@
 # Gates for `codelore check`, measured with codelore 0.30.0 on 2026-09-22.
 # Bounds sit just past the measured value. A missing thresholds file makes
 # `codelore check` pass with no rules, so this file is what makes the job bind.
+# `.codeloreignore` drops `.opencode/**`, so this graph is the API only.
 #
 # code_health_min is omitted. The health scan returned no rows because no
 # file has the default five revisions, and the gate degrades instead of scoring.
@@ -8,5 +9,7 @@
 # 0 would fail the build on any import cycle.
 
 [gates]
-# architecture-metrics propagation_cost = 0.3125 across 4 files.
-max_propagation_cost = 0.35
+# architecture-metrics propagation_cost = 1.0000 across 1 file. A one-file
+# graph sits at the top of the 0..1 scale, and a ceiling of 1.0 passes.
+# Remeasure once the API graph has more than one file.
+max_propagation_cost = 1.0

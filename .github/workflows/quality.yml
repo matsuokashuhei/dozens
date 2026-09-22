@@ -87,8 +87,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
       - uses: emrecdr/codelore@v1
         with:
           command: check
           version: v0.30.0
           args: '--thresholds-file .codelore-thresholds.toml'
+      - name: Fetch base branch
+        if: github.event_name == 'pull_request'
+        run: git fetch origin ${{ github.base_ref }}
+      - name: Diff summary
+        if: github.event_name == 'pull_request'
+        run: |
+          codelore diff "origin/${{ github.base_ref }}...HEAD" \
+            --analysis all \
+            --fail-on none \
+            --format markdown >> "$GITHUB_STEP_SUMMARY"

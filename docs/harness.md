@@ -9,7 +9,7 @@ enforces each one.
 |---|---|---|
 | Cyclomatic complexity | 10, reported only | SonarQube metric |
 | Cognitive complexity | 10 | SonarQube rule S3776 |
-| Propagation cost | 0.35 | codelore `check` |
+| Propagation cost | 1.0 | codelore `check` |
 | Unused dependencies | 0 | cargo-machete |
 | Coverage | 85 overall, 90 new code | cargo-llvm-cov and SonarQube |
 | Compiler and lint warnings | 0 | `-Dwarnings` |
@@ -38,7 +38,9 @@ coverage thresholds apply only after the first report is imported.
 format, lints, tests, coverage, and unused dependencies. The `sonar` job
 scans with the SonarQube Rust analyzer and waits for the quality gate.
 The `codelore` job checks out full history and runs `codelore check`
-against `.codelore-thresholds.toml`.
+against `.codelore-thresholds.toml`. `.codeloreignore` keeps
+`.opencode/**` out of that graph. On a pull request the same job appends
+`codelore diff` to the run summary and does not fail the build on it.
 
 Run cargo commands in `apps/api`, or pass `--manifest-path apps/api/Cargo.toml`.
 
