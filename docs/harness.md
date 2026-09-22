@@ -24,9 +24,10 @@ Clippy uses its default lint set. CI passes `-Dwarnings` so warnings fail the jo
 report. `infra/sonar/docker-compose.yml` runs a
 local SonarQube. `infra/sonar/quality-gate.json` holds the gate
 conditions and the rule parameters. `infra/sonar/provision.sh` creates
-the project if it is missing, replaces the gate conditions, assigns the
-gate, copies the Rust profile to `Dozenz Rust`, makes it the default,
-and sets the `rust:S3776` threshold to 10.
+the project and the gate, clears the conditions Sonar copies onto a new
+gate, applies `quality-gate.json`, assigns the gate, copies the Rust
+profile to `Dozenz Rust`, makes it the default, and sets the
+`rust:S3776` threshold to 10.
 
 The Rust analyzer reports cyclomatic complexity as a metric. It has no
 cyclomatic rule, so the gate cannot fail on that number. The cognitive

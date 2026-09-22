@@ -16,20 +16,14 @@ api() {
   curl -fsS -u "$token:" "$@"
 }
 
-profiles() {
-  api "$host/api/qualityprofiles/search?language=rust"
-}
+api -X POST "$host/api/projects/create" \
+  --data-urlencode "project=$project_key" \
+  --data-urlencode "name=$project_name" >/dev/null
 
-if ! api "$host/api/projects/search?projects=$project_key" | jq -e '.components | length > 0' >/dev/null; then
-  api -X POST "$host/api/projects/create" \
-    --data-urlencode "project=$project_key" \
-    --data-urlencode "name=$project_name" >/dev/null
-fi
+api -X POST "$host/api/qualitygates/create" --data-urlencode "name=$gate" >/dev/null
 
-if ! api "$host/api/qualitygates/show?name=$gate" >/dev/null 2>&1; then
-  api -X POST "$host/api/qualitygates/create" --data-urlencode "name=$gate" >/dev/null
-fi
-
+# qualitygates/create copies the built-in Sonar way conditions.
+# Clear them so the gate matches quality-gate.json.
 api "$host/api/qualitygates/show?name=$gate" | jq -r '.conditions[].id' | while read -r id; do
   api -X POST "$host/api/qualitygates/delete_condition" --data-urlencode "id=$id" >/dev/null
 done
@@ -46,17 +40,14 @@ api -X POST "$host/api/qualitygates/select" \
   --data-urlencode "projectKey=$project_key" \
   --data-urlencode "gateName=$gate" >/dev/null
 
-if ! profiles | jq -e --arg name "$profile" '.profiles[] | select(.name == $name)' >/dev/null; then
-  from="$(profiles | jq -r '.profiles[] | select(.isDefault == true) | .key' | head -1)"
-  api -X POST "$host/api/qualityprofiles/copy" \
-    --data-urlencode "fromKey=$from" \
-    --data-urlencode "toName=$profile" >/dev/null
-fi
+from="$(api "$host/api/qualityprofiles/search?language=rust" | jq -r '.profiles[] | select(.isDefault == true) | .key')"
+profile_key="$(api -X POST "$host/api/qualityprofiles/copy" \
+  --data-urlencode "fromKey=$from" \
+  --data-urlencode "toName=$profile" | jq -r .key)"
 
 api -X POST "$host/api/qualityprofiles/set_default" \
   --data-urlencode "language=rust" \
   --data-urlencode "qualityProfile=$profile" >/dev/null
-profile_key="$(profiles | jq -r --arg name "$profile" '.profiles[] | select(.name == $name) | .key' | head -1)"
 
 jq -c '.ruleParameters[]' "$spec" | while read -r rule; do
   api -X POST "$host/api/qualityprofiles/activate_rule" \
