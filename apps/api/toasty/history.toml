@@ -1,0 +1,11 @@
+version = 1
+
+[[migrations]]
+id = 5233245672778796786
+name = "20260923_160811_add_users_table.sql"
+snapshot_name = "20260923_160811_snapshot.toml"
+
+[[migrations]]
+id = 2574845703019260188
+name = "20260924_053117_add_user_identities_table.sql"
+snapshot_name = "20260924_053117_snapshot.toml"

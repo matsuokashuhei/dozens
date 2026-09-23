@@ -4,8 +4,7 @@
 __MACOSX/
 .AppleDouble
 .LSOverride
-Icon[
-]
+Icon[]
 
 # Resource forks
 ._*
@@ -59,6 +58,6 @@ MobileBackups.trash
 tmbootpicker.efi
 
 # App
-.env.aws
-.env.cloudflare
+.env.*
+!.env.example
 *.zip

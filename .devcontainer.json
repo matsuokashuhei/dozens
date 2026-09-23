@@ -1,0 +1,55 @@
+{
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+    "forwardPorts": [6080],
+    "portsAttributes": {
+      "6080": {
+        "label": "desktop"
+      }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {},
+        "ghcr.io/devcontainers/features/aws-cli:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        "ghcr.io/devcontainers/features/terraform:1": {},
+        "ghcr.io/devcontainers/features/node:2": {},
+        "ghcr.io/devcontainers/features/rust:1": {},
+        "ghcr.io/devcontainers/features/desktop-lite:1": {},
+        "ghcr.io/devcontainers/features/docker-in-docker:4": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "fill-labs.dependi",
+                "GitHub.vscode-pull-request-github",
+                "rust-lang.rust-analyzer",
+                "tamasfe.even-better-toml",
+                "vadimcn.vscode-lldb",
+                "esbenp.prettier-vscode",
+                "openai.chatgpt",
+                "MermaidChart.vscode-mermaid-chart"
+            ],
+            "settings": {
+                "[json]": {
+                    "editor.formatOnSave": true,
+                    "editor.defaultFormatter": "esbenp.prettier-vscode"
+                },
+                "[rust]": {
+                    "editor.codeActionsOnSave": {
+                        "source.fixAll": "always"
+                    },
+                    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+                    "editor.formatOnSave": true
+                },
+                "[terraform]": {
+                    "editor.defaultFormatter": "hashicorp.terraform",
+                    "editor.formatOnSave": true
+                },
+                "mermaidChart.showGenerateDiagramCodeLens": false,
+                "rust-analyzer.linkedProjects": [
+                    "apps/api/Cargo.toml"
+                ],
+                "rust-analyzer.check.command": "clippy"
+            }
+        }
+    }
+}
