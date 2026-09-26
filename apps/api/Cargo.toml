@@ -11,17 +11,18 @@ path = "src/bin/api.rs"
 anyhow = "1.0.104"
 async-trait = "0.1.92"
 aws-config = "1"
-aws-sdk-cloudwatchlogs = "1.136.0"
-aws-sdk-cognitoidentityprovider = "1.136.0"
+aws-sdk-cloudwatchlogs = "1.154.0"
+aws-sdk-cognitoidentityprovider = "1.137.0"
 axum = "0.8.9"
 fake = "5.1.0"
 jiff = "0.2.37"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-thiserror = "2.0.20"
-toasty = { version = "0.10.0", features = ["dynamodb", "jiff", "migration", "postgresql"] }
-toasty-cli = "0.10.0"
+thiserror = "2.0.21"
+toasty = { version = "0.11.0", features = ["dynamodb", "jiff", "migration", "postgresql"] }
+toasty-cli = "0.11.0"
 tokio = { version = "1.53.1", features = ["rt-multi-thread"] }
+tower-http = { version = "0.7.1", features = ["trace"] }
 tracing = "0.1.44"
 tracing-subscriber = "0.3.23"
 uuid = { version = "1", features = ["v7"] }

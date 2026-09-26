@@ -15,22 +15,19 @@ use toasty::{
 use tracing::info;
 
 use crate::{
-    application::usecase::{
-        confirm_sign_up_usecase::ConfirmSignUpUsecase, sign_up_usecase::SignUpUsecase,
-    },
+    application::usecase::confirm_sign_up_usecase::ConfirmSignUpUsecase,
     domain::model::email::Email,
     infrastructure::{
         self,
         repository::{
-            DatabaseError,
-            user_identity_repository::{UserIdentityRecord, UserIdentityRepositoryImpl},
-            user_repository::{UserRecord, UserRepositoryImpl},
+            DatabaseError, user_identity_repository::UserIdentityRecord,
+            user_repository::UserRecord,
         },
         service::cognito_identity_provider::CognitoIdentityProvider,
     },
     presentation::{
-        handler::{confirm_sign_up_handler::ConfirmSignUpHandler, sign_up_handler::SignUpHandler},
-        router::{confirm_sign_up_router::ConfirmSignUpRouter, sign_up_router::SignUpRouter},
+        handler::confirm_sign_up_handler::ConfirmSignUpHandler,
+        router::confirm_sign_up_router::ConfirmSignUpRouter,
     },
 };
 
@@ -117,23 +114,23 @@ async fn delete_cognito_users() {
     }
 }
 
-pub async fn build_sign_up_usecase() -> SignUpUsecase {
-    let db = build_db_connection().await.unwrap();
-    let user_repository = UserRepositoryImpl::new(db.clone());
-    let user_identity_repository = UserIdentityRepositoryImpl::new(db.clone());
-    let identity_provider = build_cognito_identity_provider().await;
-    SignUpUsecase::new(
-        Arc::new(identity_provider),
-        Arc::new(user_repository),
-        Arc::new(user_identity_repository),
-    )
-}
+// pub async fn build_sign_up_usecase() -> SignUpUsecase {
+//     let db = build_db_connection().await.unwrap();
+//     let user_repository = UserRepositoryImpl::new(db.clone());
+//     let user_identity_repository = UserIdentityRepositoryImpl::new(db.clone());
+//     let identity_provider = build_cognito_identity_provider().await;
+//     SignUpUsecase::new(
+//         Arc::new(identity_provider),
+//         Arc::new(user_repository),
+//         Arc::new(user_identity_repository),
+//     )
+// }
 
-pub async fn build_sign_up_router() -> SignUpRouter {
-    let sign_up_usecase = build_sign_up_usecase().await;
-    let handler = SignUpHandler::new(Arc::new(sign_up_usecase));
-    SignUpRouter::new(Arc::new(handler))
-}
+// pub async fn build_sign_up_router() -> SignUpRouter {
+//     let sign_up_usecase = build_sign_up_usecase().await;
+//     let handler = SignUpHandler::new(Arc::new(sign_up_usecase));
+//     SignUpRouter::new(Arc::new(handler))
+// }
 
 pub async fn build_confirm_sign_up_usecase() -> ConfirmSignUpUsecase {
     let identity_provider = build_cognito_identity_provider().await;

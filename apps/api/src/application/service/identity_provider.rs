@@ -68,4 +68,5 @@ pub trait IdentityProvider: Send + Sync {
         email: Email,
         code: String,
     ) -> Result<ConfirmSignInResult, IdentityProviderError>;
+    async fn sign_out(&self, access_token: String) -> Result<(), IdentityProviderError>;
 }

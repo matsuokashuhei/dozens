@@ -5,7 +5,7 @@ use api::{
     application::usecase::{
         confirm_sign_in_usecase::ConfirmSignInUsecase,
         confirm_sign_up_usecase::ConfirmSignUpUsecase, sign_in_usecase::SignInUsecase,
-        sign_up_usecase::SignUpUsecase,
+        sign_out_usecase::SignOutUsecase, sign_up_usecase::SignUpUsecase,
     },
     infrastructure::{
         repository::{
@@ -18,17 +18,18 @@ use api::{
         handler::{
             confirm_sign_in_handler::ConfirmSignInHandler,
             confirm_sign_up_handler::ConfirmSignUpHandler, sign_in_handler::SignInHandler,
-            sign_up_handler::SignUpHandler,
+            sign_out_handler::SignOutHandler, sign_up_handler::SignUpHandler,
         },
         router::{
             confirm_sign_in_router::ConfirmSignInRouter,
             confirm_sign_up_router::ConfirmSignUpRouter, sign_in_router::SignInRouter,
-            sign_up_router::SignUpRouter,
+            sign_out_router::SignOutRouter, sign_up_router::SignUpRouter,
         },
     },
 };
 use axum::{Router, http::StatusCode, routing::get};
 use tokio::net::TcpListener;
+use tower_http::trace::TraceLayer;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -67,13 +68,21 @@ async fn main() -> Result<()> {
     let confirm_sign_in_usecase = ConfirmSignInUsecase::new(Arc::new(identity_provider));
     let confirm_sign_in_handler = ConfirmSignInHandler::new(Arc::new(confirm_sign_in_usecase));
     let confirm_sign_in_router = ConfirmSignInRouter::new(Arc::new(confirm_sign_in_handler));
+    // sign out
+    let client = aws_sdk_cognitoidentityprovider::Client::new(&aws_config);
+    let identity_provider = CognitoIdentityProvider::new(client);
+    let sign_out_usecase = SignOutUsecase::new(Arc::new(identity_provider));
+    let sign_out_handler = SignOutHandler::new(Arc::new(sign_out_usecase));
+    let sign_out_router = SignOutRouter::new(Arc::new(sign_out_handler));
     let app = Router::new()
-        .route("/", get(|| async { "Hello, World!" }))
         .route("/health", get(|| async { StatusCode::OK }))
         .merge(sign_up_router.routes())
         .merge(confirm_sign_up_router.routes())
         .merge(sign_in_router.routes())
-        .merge(confirm_sign_in_router.routes());
+        .merge(confirm_sign_in_router.routes())
+        .merge(sign_out_router.routes())
+        .layer(TraceLayer::new_for_http());
+
     let listener = TcpListener::bind("0.0.0.0:3000").await?;
     axum::serve(listener, app).await?;
     Ok(())

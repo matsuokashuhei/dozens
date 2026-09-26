@@ -6,6 +6,7 @@ use aws_sdk_cognitoidentityprovider::{
     operation::{
         admin_get_user::{AdminGetUserError, AdminGetUserOutput},
         confirm_sign_up::{ConfirmSignUpError, ConfirmSignUpOutput},
+        global_sign_out::GlobalSignOutError,
         initiate_auth::{InitiateAuthError, InitiateAuthOutput},
         resend_confirmation_code::ResendConfirmationCodeError,
         respond_to_auth_challenge::{RespondToAuthChallengeError, RespondToAuthChallengeOutput},
@@ -274,9 +275,17 @@ impl IdentityProvider for CognitoIdentityProvider {
             }
         }
     }
-}
 
-impl CognitoIdentityProvider {}
+    async fn sign_out(&self, access_token: String) -> Result<(), IdentityProviderError> {
+        self.client
+            .global_sign_out()
+            .access_token(access_token)
+            .send()
+            .await
+            .map(|_| ())
+            .map_err(|e| e.into_service_error().into())
+    }
+}
 
 impl From<SignUpError> for IdentityProviderError {
     fn from(e: SignUpError) -> Self {
@@ -343,6 +352,17 @@ impl From<RespondToAuthChallengeError> for IdentityProviderError {
             RespondToAuthChallengeError::ExpiredCodeException(_) => Self::ExpiredCode,
             RespondToAuthChallengeError::UserNotFoundException(_) => Self::UserNotFound,
             RespondToAuthChallengeError::UserNotConfirmedException(_) => Self::UserNotConfirmed,
+            _ => Self::InternalError {
+                message: e.to_string(),
+            },
+        }
+    }
+}
+
+impl From<GlobalSignOutError> for IdentityProviderError {
+    fn from(e: GlobalSignOutError) -> Self {
+        match e {
+            GlobalSignOutError::InvalidParameterException(_) => Self::InvalidParameter,
             _ => Self::InternalError {
                 message: e.to_string(),
             },
@@ -834,5 +854,23 @@ mod tests {
         //     IdentityProviderError::UserNotConfirmed
         // );
         // tear_down().await;
+    }
+
+    #[tokio::test]
+    async fn test_sign_out() {
+        set_up().await;
+        let identity_provider = build_cognito_identity_provider().await;
+        let email = Email::new(TEST_EMAILS[2]).unwrap();
+        let output = create_cognito_user(email.clone()).await.user.unwrap();
+        let result = identity_provider.sign_in(email.clone()).await.unwrap();
+        let confirmation_code =
+            fetch_confirmation_code(output.username().unwrap(), email.clone().as_str()).await;
+        let result = identity_provider
+            .confirm_sign_in(result.session, email.clone(), confirmation_code.clone())
+            .await
+            .unwrap();
+        let result = identity_provider.sign_out(result.access_token).await;
+        assert!(result.is_ok());
+        tear_down().await;
     }
 }
