@@ -9,6 +9,14 @@ services:
       POSTGRES_DB: dozens
     volumes:
       - postgres_data:/var/lib/postgresql
+  postgres_test:
+    image: postgres:18
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dozens_test
 
 volumes:
   postgres_data:

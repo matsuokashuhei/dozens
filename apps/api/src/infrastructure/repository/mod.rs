@@ -10,10 +10,10 @@ pub enum DatabaseError {
     ConnectionError(String),
 }
 
-pub async fn build_db_connection() -> Result<Db, DatabaseError> {
+pub async fn build_db_connection(url: &str) -> Result<Db, DatabaseError> {
     Db::builder()
         .models(models())
-        .connect("postgresql://postgres:postgres@localhost:5432/dozens")
+        .connect(url)
         .await
         .map_err(|e| DatabaseError::ConnectionError(e.to_string()))
 }

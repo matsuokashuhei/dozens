@@ -17,12 +17,15 @@ where
     type Rejection = PresentationError;
 
     async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
-        let Json(value) = Json::<T>::from_request(req, state)
-            .await
-            .map_err(|error| PresentationError::BadRequest(error.to_string()))?;
-        if let Err(error) = value.validate() {
-            return Err(PresentationError::BadRequest(error.to_string()));
+        let result = Json::<T>::from_request(req, state).await;
+        match result {
+            Ok(Json(value)) => {
+                if let Err(error) = value.validate() {
+                    return Err(PresentationError::BadRequest(error.to_string()));
+                }
+                Ok(Self(value))
+            }
+            Err(error) => Err(PresentationError::BadRequest(error.to_string())),
         }
-        Ok(Self(value))
     }
 }
