@@ -42,6 +42,9 @@ impl From<IdentityProviderError> for UsecaseError {
 
 impl From<RepositoryError> for UsecaseError {
     fn from(error: RepositoryError) -> Self {
-        Self::InternalError(error.to_string())
+        match error {
+            RepositoryError::NotFound(_) => Self::UserNotFound,
+            RepositoryError::DatabaseError(message) => Self::InternalError(message),
+        }
     }
 }

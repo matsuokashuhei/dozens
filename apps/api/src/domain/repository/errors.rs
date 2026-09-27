@@ -4,4 +4,6 @@ use thiserror::Error;
 pub enum RepositoryError {
     #[error("database error: {0}")]
     DatabaseError(String),
+    #[error("{0}")]
+    NotFound(String),
 }

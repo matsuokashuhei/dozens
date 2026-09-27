@@ -34,6 +34,12 @@ pub struct CognitoIdentityProvider {
 }
 
 impl CognitoIdentityProvider {
+    pub fn issuer() -> String {
+        let region = env::var("AWS_REGION").unwrap();
+        let user_pool_id = env::var("AWS_COGNITO_USER_POOL_ID").unwrap();
+        format!("https://cognito-idp.{region}.amazonaws.com/{user_pool_id}")
+    }
+
     pub fn new(client: Client) -> Self {
         Self { client }
     }
@@ -132,7 +138,7 @@ impl IdentityProvider for CognitoIdentityProvider {
         let result = self.request_sign_up(email.clone()).await;
         match result {
             Ok(output) => Ok(SignUpResult {
-                iss: env::var("AWS_COGNITO_USER_POOL_ID").unwrap(),
+                iss: Self::issuer(),
                 sub: output.user_sub().to_owned(),
             }),
             Err(e) => match e {
@@ -143,7 +149,7 @@ impl IdentityProvider for CognitoIdentityProvider {
                             if result.user_status() == Some(&UserStatusType::Unconfirmed) {
                                 self.resend_confirmation_code(email).await?;
                                 Ok(SignUpResult {
-                                    iss: env::var("AWS_COGNITO_USER_POOL_ID").unwrap(),
+                                    iss: Self::issuer(),
                                     sub: result.username.to_owned(),
                                 })
                             } else {
@@ -290,9 +296,7 @@ impl IdentityProvider for CognitoIdentityProvider {
     async fn build_token_decoder(
         &self,
     ) -> Result<impl JwtDecoder<Claims> + 'static, IdentityProviderError> {
-        let region = self.client.config().region().unwrap().to_string();
-        let user_pool_id = env::var("AWS_COGNITO_USER_POOL_ID").unwrap();
-        let issuer = format!("https://cognito-idp.{region}.amazonaws.com/{user_pool_id}");
+        let issuer = Self::issuer();
         let jwks_url = format!("{issuer}/.well-known/jwks.json");
         let mut validation = Validation::new(Algorithm::RS256);
         // Cognito access tokens omit `aud`.

@@ -6,8 +6,9 @@ use api::{
         service::identity_provider::IdentityProvider,
         usecase::{
             confirm_sign_in_usecase::ConfirmSignInUsecase,
-            confirm_sign_up_usecase::ConfirmSignUpUsecase, sign_in_usecase::SignInUsecase,
-            sign_out_usecase::SignOutUsecase, sign_up_usecase::SignUpUsecase,
+            confirm_sign_up_usecase::ConfirmSignUpUsecase, get_user_usecase::GetUserUsecase,
+            sign_in_usecase::SignInUsecase, sign_out_usecase::SignOutUsecase,
+            sign_up_usecase::SignUpUsecase,
         },
     },
     infrastructure::{
@@ -20,14 +21,16 @@ use api::{
     presentation::{
         handler::{
             confirm_sign_in_handler::ConfirmSignInHandler,
-            confirm_sign_up_handler::ConfirmSignUpHandler, sign_in_handler::SignInHandler,
-            sign_out_handler::SignOutHandler, sign_up_handler::SignUpHandler,
+            confirm_sign_up_handler::ConfirmSignUpHandler, get_user_handler::GetUserHandler,
+            sign_in_handler::SignInHandler, sign_out_handler::SignOutHandler,
+            sign_up_handler::SignUpHandler,
         },
         middleware::authenticator,
         router::{
             confirm_sign_in_router::ConfirmSignInRouter,
-            confirm_sign_up_router::ConfirmSignUpRouter, sign_in_router::SignInRouter,
-            sign_out_router::SignOutRouter, sign_up_router::SignUpRouter,
+            confirm_sign_up_router::ConfirmSignUpRouter, get_user_router::GetUserRouter,
+            sign_in_router::SignInRouter, sign_out_router::SignOutRouter,
+            sign_up_router::SignUpRouter,
         },
     },
 };
@@ -82,6 +85,11 @@ async fn main() -> Result<()> {
     let sign_out_usecase = SignOutUsecase::new(Arc::new(identity_provider));
     let sign_out_handler = SignOutHandler::new(Arc::new(sign_out_usecase));
     let sign_out_router = SignOutRouter::new(Arc::new(sign_out_handler));
+    // get user
+    let user_repository = UserRepositoryImpl::new(db.clone());
+    let get_user_usecase = GetUserUsecase::new(Arc::new(user_repository));
+    let get_user_handler = GetUserHandler::new(Arc::new(get_user_usecase));
+    let get_user_router = GetUserRouter::new(Arc::new(get_user_handler));
     // build app
     let app = Router::new()
         .route("/health", get(|| async { StatusCode::OK }))
@@ -90,6 +98,7 @@ async fn main() -> Result<()> {
         .merge(sign_in_router.routes())
         .merge(confirm_sign_in_router.routes())
         .merge(sign_out_router.routes())
+        .merge(get_user_router.routes())
         .layer(authenticator::extension(decoder))
         .layer(TraceLayer::new_for_http());
 
