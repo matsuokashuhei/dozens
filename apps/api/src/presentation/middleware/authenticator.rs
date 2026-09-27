@@ -4,20 +4,23 @@ use axum::extract::FromRequestParts;
 use axum::http::StatusCode;
 use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
-use axum::{Extension, Json};
-use axum_jwt_auth::{BearerTokenExtractor, Decoder, JwtDecoder, TokenExtractor};
+use axum::{Extension, Json, RequestPartsExt};
+use axum_extra::TypedHeader;
+use axum_extra::headers::Authorization;
+use axum_extra::headers::authorization::Bearer;
+use axum_jwt_auth::{Decoder, JwtDecoder};
 use serde::Serialize;
 
 use crate::application::service::identity_provider::Claims;
 
 #[derive(Debug)]
 pub struct Authenticator {
-    subject: String,
+    subject: Option<String>,
 }
 
 impl Authenticator {
-    pub fn subject(&self) -> &str {
-        &self.subject
+    pub fn subject(&self) -> Option<&str> {
+        self.subject.as_deref()
     }
 }
 
@@ -38,20 +41,22 @@ where
     type Rejection = AuthenticatorError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        let bearer = match parts.extract::<TypedHeader<Authorization<Bearer>>>().await {
+            Ok(TypedHeader(Authorization(bearer))) => bearer,
+            Err(rejection) if rejection.is_missing() => return Ok(Self { subject: None }),
+            Err(_) => return Err(AuthenticatorError::Unauthorized),
+        };
         let decoder = parts
             .extensions
             .get::<Decoder<Claims>>()
             .cloned()
             .ok_or(AuthenticatorError::Unavailable)?;
-        let token = BearerTokenExtractor::extract_token(parts)
-            .await
-            .map_err(|_| AuthenticatorError::Unauthorized)?;
         let data = decoder
-            .decode(&token)
+            .decode(bearer.token())
             .await
             .map_err(|_| AuthenticatorError::Unauthorized)?;
         Ok(Self {
-            subject: data.claims.sub,
+            subject: Some(data.claims.sub),
         })
     }
 }

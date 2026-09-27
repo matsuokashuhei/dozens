@@ -159,6 +159,7 @@ dependencies = [
  "aws-sdk-cloudwatchlogs",
  "aws-sdk-cognitoidentityprovider",
  "axum",
+ "axum-extra",
  "axum-jwt-auth",
  "fake",
  "jiff",

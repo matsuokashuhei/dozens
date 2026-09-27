@@ -147,11 +147,7 @@ impl IdentityProvider for CognitoIdentityProvider {
                                     sub: result.username.to_owned(),
                                 })
                             } else {
-                                self.request_initiate_auth_with_email(email).await?;
-                                Ok(SignUpResult {
-                                    iss: env::var("AWS_COGNITO_USER_POOL_ID").unwrap(),
-                                    sub: result.username.to_owned(),
-                                })
+                                Err(IdentityProviderError::UserAlreadyExists)
                             }
                         }
                         Err(e) => Err(e),
