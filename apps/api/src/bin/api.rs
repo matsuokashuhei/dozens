@@ -2,10 +2,13 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use api::{
-    application::usecase::{
-        confirm_sign_in_usecase::ConfirmSignInUsecase,
-        confirm_sign_up_usecase::ConfirmSignUpUsecase, sign_in_usecase::SignInUsecase,
-        sign_out_usecase::SignOutUsecase, sign_up_usecase::SignUpUsecase,
+    application::{
+        service::identity_provider::IdentityProvider,
+        usecase::{
+            confirm_sign_in_usecase::ConfirmSignInUsecase,
+            confirm_sign_up_usecase::ConfirmSignUpUsecase, sign_in_usecase::SignInUsecase,
+            sign_out_usecase::SignOutUsecase, sign_up_usecase::SignUpUsecase,
+        },
     },
     infrastructure::{
         repository::{
@@ -20,6 +23,7 @@ use api::{
             confirm_sign_up_handler::ConfirmSignUpHandler, sign_in_handler::SignInHandler,
             sign_out_handler::SignOutHandler, sign_up_handler::SignUpHandler,
         },
+        middleware::authenticator,
         router::{
             confirm_sign_in_router::ConfirmSignInRouter,
             confirm_sign_up_router::ConfirmSignUpRouter, sign_in_router::SignInRouter,
@@ -30,10 +34,13 @@ use api::{
 use axum::{Router, http::StatusCode, routing::get};
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
+use tracing::Level;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::fmt()
+        .with_max_level(Level::DEBUG)
+        .init();
     let aws_config = aws_config::defaults(aws_config::BehaviorVersion::latest())
         .load()
         .await;
@@ -42,6 +49,7 @@ async fn main() -> Result<()> {
     let client = aws_sdk_cognitoidentityprovider::Client::new(&aws_config);
     let user_repository = UserRepositoryImpl::new(db.clone());
     let identity_provider = CognitoIdentityProvider::new(client);
+    let decoder = identity_provider.build_token_decoder().await?;
     let user_identity_repository = UserIdentityRepositoryImpl::new(db.clone());
     let sign_up_usecase = SignUpUsecase::new(
         Arc::new(identity_provider),
@@ -74,6 +82,7 @@ async fn main() -> Result<()> {
     let sign_out_usecase = SignOutUsecase::new(Arc::new(identity_provider));
     let sign_out_handler = SignOutHandler::new(Arc::new(sign_out_usecase));
     let sign_out_router = SignOutRouter::new(Arc::new(sign_out_handler));
+    // build app
     let app = Router::new()
         .route("/health", get(|| async { StatusCode::OK }))
         .merge(sign_up_router.routes())
@@ -81,6 +90,7 @@ async fn main() -> Result<()> {
         .merge(sign_in_router.routes())
         .merge(confirm_sign_in_router.routes())
         .merge(sign_out_router.routes())
+        .layer(authenticator::extension(decoder))
         .layer(TraceLayer::new_for_http());
 
     let listener = TcpListener::bind("0.0.0.0:3000").await?;

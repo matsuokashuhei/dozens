@@ -1,4 +1,6 @@
 use async_trait::async_trait;
+use axum_jwt_auth::JwtDecoder;
+use serde::Deserialize;
 use thiserror::Error;
 
 use crate::domain::model::email::Email;
@@ -69,4 +71,16 @@ pub trait IdentityProvider: Send + Sync {
         code: String,
     ) -> Result<ConfirmSignInResult, IdentityProviderError>;
     async fn sign_out(&self, access_token: String) -> Result<(), IdentityProviderError>;
+    async fn build_token_decoder(
+        &self,
+    ) -> Result<impl JwtDecoder<Claims> + 'static, IdentityProviderError>
+    where
+        Self: Sized;
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Claims {
+    pub sub: String,
+    pub exp: u64,
+    pub iss: String,
 }

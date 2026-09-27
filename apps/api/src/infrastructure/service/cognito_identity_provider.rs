@@ -1,4 +1,6 @@
 use std::env;
+use std::future::Future;
+use std::pin::Pin;
 
 use async_trait::async_trait;
 use aws_sdk_cognitoidentityprovider::{
@@ -14,11 +16,14 @@ use aws_sdk_cognitoidentityprovider::{
     },
     types::{AuthFlowType, ChallengeNameType, UserStatusType},
 };
+use axum_jwt_auth::{JwtDecoder, RemoteJwksDecoder};
+use jsonwebtoken::{Algorithm, TokenData, Validation};
+use tokio_util::sync::CancellationToken;
 use tracing::error;
 
 use crate::{
     application::service::identity_provider::{
-        ConfirmSignInResult, ConfirmSignUpResult, IdentityProvider, IdentityProviderError,
+        Claims, ConfirmSignInResult, ConfirmSignUpResult, IdentityProvider, IdentityProviderError,
         SendConfirmationCodeResult, SignInResult, SignUpResult,
     },
     domain::model::email::Email,
@@ -284,6 +289,57 @@ impl IdentityProvider for CognitoIdentityProvider {
             .await
             .map(|_| ())
             .map_err(|e| e.into_service_error().into())
+    }
+
+    async fn build_token_decoder(
+        &self,
+    ) -> Result<impl JwtDecoder<Claims> + 'static, IdentityProviderError> {
+        let region = self.client.config().region().unwrap().to_string();
+        let user_pool_id = env::var("AWS_COGNITO_USER_POOL_ID").unwrap();
+        let issuer = format!("https://cognito-idp.{region}.amazonaws.com/{user_pool_id}");
+        let jwks_url = format!("{issuer}/.well-known/jwks.json");
+        let mut validation = Validation::new(Algorithm::RS256);
+        // Cognito access tokens omit `aud`.
+        validation.validate_aud = false;
+        validation.set_issuer(&[&issuer]);
+        validation.set_required_spec_claims(&["exp", "iss", "sub"]);
+        let inner = RemoteJwksDecoder::builder()
+            .jwks_url(jwks_url)
+            .validation(validation)
+            .build()
+            .map_err(|e| IdentityProviderError::InternalError {
+                message: e.to_string(),
+            })?;
+        let shutdown =
+            inner
+                .initialize()
+                .await
+                .map_err(|e| IdentityProviderError::InternalError {
+                    message: e.to_string(),
+                })?;
+        Ok(CognitoAccessTokenDecoder { inner, shutdown })
+    }
+}
+
+struct CognitoAccessTokenDecoder {
+    inner: RemoteJwksDecoder,
+    // Hourly JWKS refresh rotates keys until this token is cancelled.
+    shutdown: CancellationToken,
+}
+
+impl Drop for CognitoAccessTokenDecoder {
+    fn drop(&mut self) {
+        self.shutdown.cancel();
+    }
+}
+
+impl JwtDecoder<Claims> for CognitoAccessTokenDecoder {
+    fn decode<'a>(
+        &'a self,
+        token: &'a str,
+    ) -> Pin<Box<dyn Future<Output = Result<TokenData<Claims>, axum_jwt_auth::Error>> + Send + 'a>>
+    {
+        JwtDecoder::<Claims>::decode(&self.inner, token)
     }
 }
 
