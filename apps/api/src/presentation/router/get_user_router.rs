@@ -20,9 +20,9 @@ impl GetUserRouter {
             "/user",
             get({
                 let handler = self.get_user.clone();
-                move |auth: Authenticator| {
+                move |authenticator: Authenticator| {
                     let handler = handler.clone();
-                    async move { handler.handle(auth).await.into_response() }
+                    async move { handler.handle(authenticator).await.into_response() }
                 }
             }),
         )

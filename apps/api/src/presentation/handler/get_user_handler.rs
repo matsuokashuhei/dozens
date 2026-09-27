@@ -23,8 +23,11 @@ impl GetUserHandler {
         Self { get_user_usecase }
     }
 
-    pub async fn handle(&self, auth: Authenticator) -> Result<Response, PresentationError> {
-        let Some(sub) = auth.subject() else {
+    pub async fn handle(
+        &self,
+        authenticator: Authenticator,
+    ) -> Result<Response, PresentationError> {
+        let Some(sub) = authenticator.subject() else {
             return Ok(AuthenticatorError::Unauthorized.into_response());
         };
         let result = self
