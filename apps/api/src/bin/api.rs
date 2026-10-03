@@ -5,9 +5,9 @@ use api::{
     application::{
         service::identity_provider::IdentityProvider,
         usecase::{
+            authenticate_user_usecase::AuthenticateUserUsecase,
             change_email_usecase::ChangeEmailUsecase,
             confirm_change_email_usecase::ConfirmChangeEmailUsecase,
-            authenticate_user_usecase::AuthenticateUserUsecase,
             confirm_sign_in_usecase::ConfirmSignInUsecase,
             confirm_sign_up_usecase::ConfirmSignUpUsecase, sign_in_usecase::SignInUsecase,
             sign_out_usecase::SignOutUsecase, sign_up_usecase::SignUpUsecase,
