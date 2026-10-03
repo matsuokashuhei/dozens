@@ -3,10 +3,11 @@ use std::sync::Arc;
 use axum::{Router, response::IntoResponse, routing::post};
 
 use crate::{
-    application::usecase::change_email_usecase::ChangeEmailInput,
+    application::usecase::change_email_usecase::ChangeEmailBody,
     presentation::{
         handler::change_email_handler::ChangeEmailHandler,
         middleware::json_validator::JsonValidator,
+        middleware::user_authenticator::UserAuthenticator,
     },
 };
 
@@ -24,9 +25,15 @@ impl ChangeEmailRouter {
             "/change_email",
             post({
                 let handler = self.change_email.clone();
-                move |input: JsonValidator<ChangeEmailInput>| {
+                move |user_authenticator: UserAuthenticator,
+                      input: JsonValidator<ChangeEmailBody>| {
                     let handler = handler.clone();
-                    async move { handler.handle(input).await.into_response() }
+                    async move {
+                        handler
+                            .handle(user_authenticator, input)
+                            .await
+                            .into_response()
+                    }
                 }
             }),
         )

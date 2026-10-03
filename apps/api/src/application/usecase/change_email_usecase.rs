@@ -8,9 +8,14 @@ use crate::{
     domain::model::email::Email,
 };
 
-#[derive(Debug, Clone, Deserialize, Validate)]
+#[derive(Debug, Clone)]
 pub struct ChangeEmailInput {
     pub access_token: String,
+    pub email: Email,
+}
+
+#[derive(Debug, Clone, Deserialize, Validate)]
+pub struct ChangeEmailBody {
     pub email: Email,
 }
 

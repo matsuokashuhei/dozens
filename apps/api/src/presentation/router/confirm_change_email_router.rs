@@ -3,10 +3,11 @@ use std::sync::Arc;
 use axum::{Router, response::IntoResponse, routing::post};
 
 use crate::{
-    application::usecase::confirm_change_email_usecase::ConfirmChangeEmailInput,
+    application::usecase::confirm_change_email_usecase::ConfirmChangeEmailBody,
     presentation::{
         handler::confirm_change_email_handler::ConfirmChangeEmailHandler,
         middleware::json_validator::JsonValidator,
+        middleware::user_authenticator::UserAuthenticator,
     },
 };
 
@@ -26,9 +27,15 @@ impl ConfirmChangeEmailRouter {
             "/confirm_change_email",
             post({
                 let handler = self.confirm_change_email.clone();
-                move |input: JsonValidator<ConfirmChangeEmailInput>| {
+                move |user_authenticator: UserAuthenticator,
+                      input: JsonValidator<ConfirmChangeEmailBody>| {
                     let handler = handler.clone();
-                    async move { handler.handle(input).await.into_response() }
+                    async move {
+                        handler
+                            .handle(user_authenticator, input)
+                            .await
+                            .into_response()
+                    }
                 }
             }),
         )

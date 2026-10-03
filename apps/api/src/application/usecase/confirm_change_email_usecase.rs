@@ -7,9 +7,14 @@ use crate::application::{
     service::identity_provider::IdentityProvider, usecase::errors::UsecaseError,
 };
 
-#[derive(Debug, Clone, Deserialize, Validate)]
+#[derive(Debug, Clone)]
 pub struct ConfirmChangeEmailInput {
     pub access_token: String,
+    pub code: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Validate)]
+pub struct ConfirmChangeEmailBody {
     pub code: String,
 }
 
