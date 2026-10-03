@@ -14,18 +14,23 @@ use serde::Serialize;
 use crate::application::service::identity_provider::Claims;
 
 #[derive(Debug)]
-pub struct Authenticator {
+pub struct TokenAuthenticator {
     subject: Option<String>,
+    access_token: Option<String>,
 }
 
-impl Authenticator {
+impl TokenAuthenticator {
     pub fn subject(&self) -> Option<&str> {
         self.subject.as_deref()
+    }
+
+    pub fn access_token(&self) -> Option<&str> {
+        self.access_token.as_deref()
     }
 }
 
 #[derive(Debug)]
-pub enum AuthenticatorError {
+pub enum TokenAuthenticatorError {
     Unauthorized,
     Unavailable,
 }
@@ -34,29 +39,35 @@ pub fn extension(decoder: impl JwtDecoder<Claims> + 'static) -> Extension<Decode
     Extension(Arc::new(decoder))
 }
 
-impl<S> FromRequestParts<S> for Authenticator
+impl<S> FromRequestParts<S> for TokenAuthenticator
 where
     S: Send + Sync,
 {
-    type Rejection = AuthenticatorError;
+    type Rejection = TokenAuthenticatorError;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let bearer = match parts.extract::<TypedHeader<Authorization<Bearer>>>().await {
             Ok(TypedHeader(Authorization(bearer))) => bearer,
-            Err(rejection) if rejection.is_missing() => return Ok(Self { subject: None }),
-            Err(_) => return Err(AuthenticatorError::Unauthorized),
+            Err(rejection) if rejection.is_missing() => {
+                return Ok(Self {
+                    subject: None,
+                    access_token: None,
+                });
+            }
+            Err(_) => return Err(TokenAuthenticatorError::Unauthorized),
         };
         let decoder = parts
             .extensions
             .get::<Decoder<Claims>>()
             .cloned()
-            .ok_or(AuthenticatorError::Unavailable)?;
+            .ok_or(TokenAuthenticatorError::Unavailable)?;
         let data = decoder
             .decode(bearer.token())
             .await
-            .map_err(|_| AuthenticatorError::Unauthorized)?;
+            .map_err(|_| TokenAuthenticatorError::Unauthorized)?;
         Ok(Self {
             subject: Some(data.claims.sub),
+            access_token: Some(bearer.token().to_string()),
         })
     }
 }
@@ -66,11 +77,13 @@ struct ErrorBody {
     code: &'static str,
 }
 
-impl IntoResponse for AuthenticatorError {
+impl IntoResponse for TokenAuthenticatorError {
     fn into_response(self) -> Response {
         let (status, code) = match self {
-            AuthenticatorError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized"),
-            AuthenticatorError::Unavailable => (StatusCode::INTERNAL_SERVER_ERROR, "unavailable"),
+            TokenAuthenticatorError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized"),
+            TokenAuthenticatorError::Unavailable => {
+                (StatusCode::INTERNAL_SERVER_ERROR, "unavailable")
+            }
         };
         (status, Json(ErrorBody { code })).into_response()
     }
