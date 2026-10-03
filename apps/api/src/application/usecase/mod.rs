@@ -1,3 +1,5 @@
+pub mod change_email_usecase;
+pub mod confirm_change_email_usecase;
 pub mod confirm_sign_in_usecase;
 pub mod confirm_sign_up_usecase;
 pub mod errors;
