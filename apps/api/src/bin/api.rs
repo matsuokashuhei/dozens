@@ -7,12 +7,13 @@ use api::{
         usecase::{
             change_email_usecase::ChangeEmailUsecase,
             confirm_change_email_usecase::ConfirmChangeEmailUsecase,
+            authenticate_user_usecase::AuthenticateUserUsecase,
             confirm_sign_in_usecase::ConfirmSignInUsecase,
-            confirm_sign_up_usecase::ConfirmSignUpUsecase, get_user_usecase::GetUserUsecase,
-            sign_in_usecase::SignInUsecase, sign_out_usecase::SignOutUsecase,
-            sign_up_usecase::SignUpUsecase,
+            confirm_sign_up_usecase::ConfirmSignUpUsecase, sign_in_usecase::SignInUsecase,
+            sign_out_usecase::SignOutUsecase, sign_up_usecase::SignUpUsecase,
         },
     },
+    domain::repository::user_repository::UserRepository,
     infrastructure::{
         repository::{
             build_db_connection, user_identity_repository::UserIdentityRepositoryImpl,
@@ -29,7 +30,7 @@ use api::{
             sign_in_handler::SignInHandler, sign_out_handler::SignOutHandler,
             sign_up_handler::SignUpHandler,
         },
-        middleware::authenticator,
+        middleware::token_authenticator,
         router::{
             change_email_router::ChangeEmailRouter,
             confirm_change_email_router::ConfirmChangeEmailRouter,
@@ -40,7 +41,7 @@ use api::{
         },
     },
 };
-use axum::{Router, http::StatusCode, routing::get};
+use axum::{Extension, Router, http::StatusCode, routing::get};
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
 use tracing::Level;
@@ -54,15 +55,15 @@ async fn main() -> Result<()> {
         .load()
         .await;
     let db = build_db_connection("postgresql://postgres:postgres@localhost:5432/dozens").await?;
+    let user_repository: Arc<dyn UserRepository> = Arc::new(UserRepositoryImpl::new(db.clone()));
     // sign up
     let client = aws_sdk_cognitoidentityprovider::Client::new(&aws_config);
-    let user_repository = UserRepositoryImpl::new(db.clone());
     let identity_provider = CognitoIdentityProvider::new(client);
     let decoder = identity_provider.build_token_decoder().await?;
     let user_identity_repository = UserIdentityRepositoryImpl::new(db.clone());
     let sign_up_usecase = SignUpUsecase::new(
         Arc::new(identity_provider),
-        Arc::new(user_repository),
+        user_repository.clone(),
         Arc::new(user_identity_repository),
     );
     let sign_up_handler = SignUpHandler::new(Arc::new(sign_up_usecase));
@@ -106,9 +107,8 @@ async fn main() -> Result<()> {
     let confirm_change_email_router =
         ConfirmChangeEmailRouter::new(Arc::new(confirm_change_email_handler));
     // get user
-    let user_repository = UserRepositoryImpl::new(db.clone());
-    let get_user_usecase = GetUserUsecase::new(Arc::new(user_repository));
-    let get_user_handler = GetUserHandler::new(Arc::new(get_user_usecase));
+    let authenticate_user_usecase = Arc::new(AuthenticateUserUsecase::new(user_repository.clone()));
+    let get_user_handler = GetUserHandler::new();
     let get_user_router = GetUserRouter::new(Arc::new(get_user_handler));
     // build app
     let app = Router::new()
@@ -121,7 +121,8 @@ async fn main() -> Result<()> {
         .merge(change_email_router.routes())
         .merge(confirm_change_email_router.routes())
         .merge(get_user_router.routes())
-        .layer(authenticator::extension(decoder))
+        .layer(token_authenticator::extension(decoder))
+        .layer(Extension(authenticate_user_usecase))
         .layer(TraceLayer::new_for_http());
 
     let listener = TcpListener::bind("0.0.0.0:3000").await?;

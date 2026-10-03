@@ -9,26 +9,29 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Deserialize, Validate)]
-pub struct GetUserInput {
+pub struct AuthenticateUserInput {
     pub sub: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct GetUserOutput {
+pub struct AuthenticateUserOutput {
     pub user: User,
 }
 
-pub struct GetUserUsecase {
+pub struct AuthenticateUserUsecase {
     user_repository: Arc<dyn UserRepository>,
 }
 
-impl GetUserUsecase {
+impl AuthenticateUserUsecase {
     pub fn new(user_repository: Arc<dyn UserRepository>) -> Self {
         Self { user_repository }
     }
 
-    pub async fn execute(&self, input: GetUserInput) -> Result<GetUserOutput, UsecaseError> {
+    pub async fn execute(
+        &self,
+        input: AuthenticateUserInput,
+    ) -> Result<AuthenticateUserOutput, UsecaseError> {
         let user = self.user_repository.get_user_by_sub(&input.sub).await?;
-        Ok(GetUserOutput { user })
+        Ok(AuthenticateUserOutput { user })
     }
 }
