@@ -1,13 +1,29 @@
 use std::fmt;
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de::Error as _};
 use validator::ValidateEmail;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct Email(String);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct InvalidEmail;
+
+impl fmt::Display for InvalidEmail {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("invalid email")
+    }
+}
+
+impl<'de> Deserialize<'de> for Email {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let raw = String::deserialize(deserializer)?;
+        Email::new(&raw).map_err(D::Error::custom)
+    }
+}
 
 impl Email {
     pub fn new(raw: &str) -> Result<Self, InvalidEmail> {
