@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::{Router, response::IntoResponse, routing::get};
 
 use crate::presentation::{
-    handler::get_user_handler::GetUserHandler, middleware::authenticator::Authenticator,
+    handler::get_user_handler::GetUserHandler, middleware::user_authenticator::UserAuthenticator,
 };
 
 pub struct GetUserRouter {
@@ -20,9 +20,9 @@ impl GetUserRouter {
             "/user",
             get({
                 let handler = self.get_user.clone();
-                move |authenticator: Authenticator| {
+                move |user: UserAuthenticator| {
                     let handler = handler.clone();
-                    async move { handler.handle(authenticator).await.into_response() }
+                    async move { handler.handle(user).await.into_response() }
                 }
             }),
         )
