@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use axum::extract::FromRequestParts;
 use axum::http::StatusCode;
 use axum::http::request::Parts;
@@ -8,7 +6,7 @@ use axum::{Extension, Json, RequestPartsExt};
 use axum_extra::TypedHeader;
 use axum_extra::headers::Authorization;
 use axum_extra::headers::authorization::Bearer;
-use axum_jwt_auth::{Decoder, JwtDecoder};
+use axum_jwt_auth::Decoder;
 use serde::Serialize;
 
 use crate::application::service::identity_provider::Claims;
@@ -35,8 +33,8 @@ pub enum TokenAuthenticatorError {
     Unavailable,
 }
 
-pub fn extension(decoder: impl JwtDecoder<Claims> + 'static) -> Extension<Decoder<Claims>> {
-    Extension(Arc::new(decoder))
+pub fn extension(decoder: Decoder<Claims>) -> Extension<Decoder<Claims>> {
+    Extension(decoder)
 }
 
 impl<S> FromRequestParts<S> for TokenAuthenticator
