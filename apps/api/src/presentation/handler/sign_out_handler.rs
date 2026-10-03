@@ -5,7 +5,7 @@ use axum::response::{IntoResponse, Response};
 
 use crate::application::usecase::sign_out_usecase::{SignOutInput, SignOutUsecase};
 use crate::presentation::errors::PresentationError;
-use crate::presentation::middleware::json_validator::JsonValidator;
+use crate::presentation::middleware::user_authenticator::UserAuthenticator;
 
 pub struct SignOutHandler {
     sign_out_usecase: Arc<SignOutUsecase>,
@@ -18,9 +18,13 @@ impl SignOutHandler {
 
     pub async fn handle(
         &self,
-        JsonValidator(input): JsonValidator<SignOutInput>,
+        user_authenticator: UserAuthenticator,
     ) -> Result<Response, PresentationError> {
-        self.sign_out_usecase.execute(input).await?;
+        self.sign_out_usecase
+            .execute(SignOutInput {
+                access_token: user_authenticator.access_token,
+            })
+            .await?;
         Ok((StatusCode::NO_CONTENT).into_response())
     }
 }
