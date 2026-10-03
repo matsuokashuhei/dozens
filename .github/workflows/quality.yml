@@ -16,6 +16,9 @@ jobs:
         working-directory: apps/api
     steps:
       - uses: actions/checkout@v4
+      - name: Start test database
+        working-directory: ${{ github.workspace }}
+        run: docker compose -f apps/compose.yml up -d --wait postgres_test
       - run: rustup component add clippy rustfmt llvm-tools-preview
       - uses: Swatinem/rust-cache@v2
         with:
@@ -26,6 +29,9 @@ jobs:
         run: |
           cargo clippy --all-targets --all-features -- -Dwarnings
           cargo clippy --message-format=json --all-targets --all-features -- -Dwarnings > clippy.json
+      - name: Load test environment
+        working-directory: ${{ github.workspace }}
+        run: cat .env.test >> "$GITHUB_ENV"
       - name: Test
         run: cargo test --all-features
       - name: Coverage

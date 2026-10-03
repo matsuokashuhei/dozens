@@ -1,23 +1,28 @@
 services:
-  api:
-    build:
-      context: .
-      dockerfile: ./api/Dockerfile
-    working_dir: /dozens/apps/api
-    ports:
-      - 3000:3000
-    volumes:
-      - ..:/dozens
   postgres:
-    image: postgres:15
+    image: postgres:18
     ports:
       - 5432:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_DB: dozens
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
+  postgres_test:
+    image: postgres:18
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dozens_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dozens_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
 
 volumes:
   postgres_data:
