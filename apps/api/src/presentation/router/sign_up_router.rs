@@ -62,6 +62,7 @@ mod tests {
     };
 
     #[tokio::test]
+    #[ignore = "requires AWS Cognito"]
     async fn test_sign_up_router() {
         set_up().await;
 

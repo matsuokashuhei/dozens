@@ -59,9 +59,9 @@ pub async fn build_db_connection() -> Result<Db, DatabaseError> {
 pub async fn set_up() {
     tracing_subscriber::fmt::init();
     info!("Setting up test environment");
-    tear_down().await;
     let db = build_db_connection().await.unwrap();
     toasty::embed_migrations!().apply(&db).await.unwrap();
+    tear_down().await;
 }
 
 pub async fn tear_down() {
@@ -109,6 +109,9 @@ pub async fn delete_cognito_user(email: Email) {
 }
 
 async fn delete_cognito_users() {
+    if env::var("GITHUB_ACTIONS").is_ok_and(|value| value == "true") {
+        return;
+    }
     for email in TEST_EMAILS {
         delete_cognito_user(Email::new(email).unwrap()).await;
     }

@@ -60,4 +60,5 @@ tmbootpicker.efi
 # App
 .env.*
 !.env.example
+!.env.test
 *.zip
