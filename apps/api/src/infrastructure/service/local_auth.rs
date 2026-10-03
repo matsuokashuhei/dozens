@@ -5,20 +5,18 @@ use axum_jwt_auth::LocalDecoder;
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, encode};
 use serde::Serialize;
 
-const DEFAULT_ISSUER: &str = "dozens-local";
-const DEFAULT_AUDIENCE: &str = "dozens-local";
+use crate::infrastructure::service::cognito_identity_provider::CognitoIdentityProvider;
+
+// Development-only shared secret for HS256 tokens. Never used outside local auth mode.
+const SECRET: &[u8] = b"dozens-local-auth-secret";
 const DEFAULT_SUB: &str = "00000000-0000-0000-0000-000000000000";
 
-pub fn secret() -> String {
-    env::var("LOCAL_AUTH_SECRET").expect("LOCAL_AUTH_SECRET is required in local auth mode")
-}
-
 pub fn issuer() -> String {
-    env::var("LOCAL_AUTH_ISSUER").unwrap_or_else(|_| DEFAULT_ISSUER.to_string())
+    CognitoIdentityProvider::issuer()
 }
 
-pub fn audience() -> String {
-    env::var("LOCAL_AUTH_AUDIENCE").unwrap_or_else(|_| DEFAULT_AUDIENCE.to_string())
+fn audience() -> String {
+    env::var("AWS_COGNITO_USER_POOL_CLIENT_ID").unwrap()
 }
 
 pub fn subject() -> String {
@@ -31,7 +29,7 @@ pub fn build_decoder() -> Result<LocalDecoder, axum_jwt_auth::Error> {
     validation.set_audience(&[audience()]);
     validation.set_required_spec_claims(&["exp", "iss", "sub", "aud"]);
     LocalDecoder::builder()
-        .keys(vec![DecodingKey::from_secret(secret().as_bytes())])
+        .keys(vec![DecodingKey::from_secret(SECRET)])
         .validation(validation)
         .build()
 }
@@ -63,6 +61,6 @@ pub fn issue_access_token(
     encode(
         &Header::new(Algorithm::HS256),
         &claims,
-        &EncodingKey::from_secret(secret().as_bytes()),
+        &EncodingKey::from_secret(SECRET),
     )
 }
