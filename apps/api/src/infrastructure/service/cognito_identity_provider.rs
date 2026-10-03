@@ -450,7 +450,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_sign_up_with_success() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -461,7 +461,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_sign_up_with_user_already_exists() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -479,7 +479,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_confirm_sign_up_with_success() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -498,7 +498,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_confirm_sign_up_with_code_mismatch() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -516,7 +516,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_confirm_sign_up_with_user_not_found() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
@@ -528,7 +528,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_sign_in_with_success() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -551,7 +551,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_sign_in_with_user_not_found() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
@@ -563,7 +563,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_sign_in_with_user_not_confirmed() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -584,7 +584,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_send_confirmation_code_with_success() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -601,7 +601,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_send_confirmation_code_with_user_not_found() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
@@ -613,7 +613,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_respond_to_auth_challenge_with_success() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -634,7 +634,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_respond_to_auth_challenge_with_code_mismatch() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -650,7 +650,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_respond_to_auth_challenge_with_user_not_found() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
@@ -666,7 +666,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_respond_to_auth_challenge_with_user_not_confirmed() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -691,7 +691,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_admin_get_user_with_success() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -706,7 +706,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_request_admin_get_user_with_user_not_found() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
@@ -718,7 +718,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_sign_up_with_success() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -729,7 +729,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_sign_up_with_user_already_exists() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -750,7 +750,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_sign_up_with_user_not_confirmed() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -765,7 +765,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_confirm_sign_up() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -784,7 +784,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_confirm_sign_up_with_code_mismatch() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -802,7 +802,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_confirm_sign_up_with_user_not_found() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
@@ -814,7 +814,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_sign_in() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -827,7 +827,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_sign_in_with_user_not_found() {
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[2]).unwrap();
@@ -837,7 +837,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_sign_in_with_user_not_confirmed() {
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[2]).unwrap();
@@ -855,7 +855,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_confirm_sign_in() {
         set_up().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
@@ -879,7 +879,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_confirm_sign_in_with_code_mismatch() {
         set_up().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
@@ -898,7 +898,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_confirm_sign_in_with_user_not_found() {
         set_up().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
@@ -921,7 +921,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_confirm_sign_in_with_user_not_confirmed() {
         // set_up().await;
         // let email = Email::new(TEST_EMAILS[1]).unwrap();
@@ -942,7 +942,7 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore = "requires local AWS Cognito"]
+    #[ignore = "requires AWS Cognito"]
     async fn test_sign_out() {
         set_up().await;
         let identity_provider = build_cognito_identity_provider().await;
