@@ -16,14 +16,20 @@ use tracing::info;
 
 use crate::{
     application::usecase::confirm_sign_up_usecase::ConfirmSignUpUsecase,
-    domain::model::email::Email,
+    domain::{
+        model::{email::Email, user::User, user_identity::UserIdentity, username::Username},
+        repository::{
+            user_identity_repository::UserIdentityRepository, user_repository::UserRepository,
+        },
+    },
     infrastructure::{
         self,
         repository::{
             DatabaseError, user_identity_repository::UserIdentityRecord,
-            user_repository::UserRecord,
+            user_identity_repository::UserIdentityRepositoryImpl, user_repository::UserRecord,
+            user_repository::UserRepositoryImpl,
         },
-        service::cognito_identity_provider::CognitoIdentityProvider,
+        service::{cognito_identity_provider::CognitoIdentityProvider, local_token_decoder},
     },
     presentation::{
         handler::confirm_sign_up_handler::ConfirmSignUpHandler,
@@ -134,6 +140,25 @@ async fn delete_cognito_users() {
 //     let handler = SignUpHandler::new(Arc::new(sign_up_usecase));
 //     SignUpRouter::new(Arc::new(handler))
 // }
+
+pub async fn issue_local_access_token() -> (User, String) {
+    let db = build_db_connection().await.unwrap();
+    let user_repository = UserRepositoryImpl::new(db.clone());
+    let user_identity_repository = UserIdentityRepositoryImpl::new(db);
+
+    let iss = local_token_decoder::issuer();
+    let sub = uuid::Uuid::now_v7().to_string();
+    let user = user_repository
+        .create_user(User::new(Username::generate().as_str().to_string()))
+        .await
+        .unwrap();
+    user_identity_repository
+        .create_user_identity(UserIdentity::new(user.id, iss, sub.clone()))
+        .await
+        .unwrap();
+    let token = local_token_decoder::issue_access_token(&sub, 3600).unwrap();
+    (user, token)
+}
 
 pub async fn build_confirm_sign_up_usecase() -> ConfirmSignUpUsecase {
     let identity_provider = build_cognito_identity_provider().await;

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use axum_jwt_auth::JwtDecoder;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::domain::model::email::Email;
@@ -78,7 +78,7 @@ pub trait IdentityProvider: Send + Sync {
         Self: Sized;
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Claims {
     pub sub: String,
     pub exp: u64,
