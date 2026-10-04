@@ -11,7 +11,6 @@ path = "src/bin/api.rs"
 anyhow = "1.0.104"
 async-trait = "0.1.92"
 aws-config = "1"
-aws-sdk-cloudwatchlogs = "1.154.0"
 aws-sdk-cognitoidentityprovider = "1.137.0"
 axum = "0.8.9"
 axum-extra = { version = "0.12.6", features = ["typed-header"] }
@@ -34,7 +33,7 @@ validator = { version = "0.21.0", features = ["derive"] }
 
 [dev-dependencies]
 tower = { version = "0.5.3", features = ["util"], default-features = false }
-aws-sdk-cloudwatchlogs = "1.153.0"
+aws-sdk-cloudwatchlogs = "1.154.0"
 
 [lints.rust]
 warnings = "deny"

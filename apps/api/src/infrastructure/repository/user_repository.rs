@@ -81,8 +81,8 @@ impl UserRepository for UserRepositoryImpl {
 mod tests {
     use fake::{Fake, faker::name::raw::Name, locales::EN};
 
-    use crate::infrastructure::{
-        service::cognito_identity_provider::CognitoIdentityProvider,
+    use crate::{
+        infrastructure::service::cognito_identity_provider::CognitoIdentityProvider,
         test_support::{self, set_up, tear_down},
     };
 

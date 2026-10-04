@@ -46,18 +46,15 @@ mod tests {
     use crate::{
         application::usecase::sign_up_usecase::SignUpUsecase,
         domain::model::email::Email,
-        infrastructure::{
-            repository::{
-                user_identity_repository::{UserIdentityRecord, UserIdentityRepositoryImpl},
-                user_repository::UserRepositoryImpl,
-            },
-            test_support::{
-                TEST_EMAILS, build_cognito_identity_provider, build_db_connection, set_up,
-                tear_down,
-            },
+        infrastructure::repository::{
+            user_identity_repository::{UserIdentityRecord, UserIdentityRepositoryImpl},
+            user_repository::UserRepositoryImpl,
         },
         presentation::{
             handler::sign_up_handler::SignUpHandler, router::sign_up_router::SignUpRouter,
+        },
+        test_support::{
+            TEST_EMAILS, build_cognito_identity_provider, build_db_connection, set_up, tear_down,
         },
     };
 

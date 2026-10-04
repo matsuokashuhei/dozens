@@ -442,7 +442,7 @@ impl From<AdminGetUserError> for IdentityProviderError {
 mod tests {
     use fake::{Fake, faker::internet::raw::FreeEmail, locales::EN};
 
-    use crate::infrastructure::test_support::{
+    use crate::test_support::{
         TEST_EMAILS, build_cognito_identity_provider, create_cognito_user, fetch_confirmation_code,
         set_up, tear_down,
     };
@@ -918,27 +918,6 @@ mod tests {
             .await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap(), IdentityProviderError::UserNotFound);
-    }
-
-    #[tokio::test]
-    #[ignore = "requires AWS Cognito"]
-    async fn test_confirm_sign_in_with_user_not_confirmed() {
-        // set_up().await;
-        // let email = Email::new(TEST_EMAILS[1]).unwrap();
-        // let identity_provider = build_cognito_identity_provider().await;
-        // let output = identity_provider
-        //     .request_sign_up(email.clone())
-        //     .await
-        //     .unwrap();
-        // let result = identity_provider
-        //     .confirm_sign_in(output.session.unwrap(), email.clone(), "123456".to_string())
-        //     .await;
-        // assert!(result.is_err());
-        // assert_eq!(
-        //     result.err().unwrap(),
-        //     IdentityProviderError::UserNotConfirmed
-        // );
-        // tear_down().await;
     }
 
     #[tokio::test]
