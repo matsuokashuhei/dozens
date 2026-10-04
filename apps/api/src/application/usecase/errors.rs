@@ -21,6 +21,8 @@ pub enum UsecaseError {
     CodeMismatch,
     #[error("expired code")]
     ExpiredCode,
+    #[error("not authorized")]
+    NotAuthorized,
     #[error("unexpected error: {0}")]
     InternalError(String),
 }
@@ -35,6 +37,7 @@ impl From<IdentityProviderError> for UsecaseError {
             IdentityProviderError::CodeDeliveryFailure => Self::CodeDeliveryFailure,
             IdentityProviderError::CodeMismatch => Self::CodeMismatch,
             IdentityProviderError::ExpiredCode => Self::ExpiredCode,
+            IdentityProviderError::NotAuthorized => Self::NotAuthorized,
             IdentityProviderError::InternalError { message } => Self::InternalError(message),
         }
     }

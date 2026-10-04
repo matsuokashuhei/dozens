@@ -13,8 +13,10 @@ use aws_sdk_cognitoidentityprovider::{
         resend_confirmation_code::ResendConfirmationCodeError,
         respond_to_auth_challenge::{RespondToAuthChallengeError, RespondToAuthChallengeOutput},
         sign_up::{SignUpError, SignUpOutput},
+        update_user_attributes::UpdateUserAttributesError,
+        verify_user_attribute::VerifyUserAttributeError,
     },
-    types::{AuthFlowType, ChallengeNameType, UserStatusType},
+    types::{AttributeType, AuthFlowType, ChallengeNameType, UserStatusType},
 };
 use axum_jwt_auth::{JwtDecoder, RemoteJwksDecoder};
 use jsonwebtoken::{Algorithm, TokenData, Validation};
@@ -293,6 +295,45 @@ impl IdentityProvider for CognitoIdentityProvider {
             .map_err(|e| e.into_service_error().into())
     }
 
+    async fn change_email(
+        &self,
+        access_token: String,
+        email: Email,
+    ) -> Result<(), IdentityProviderError> {
+        self.client
+            .update_user_attributes()
+            .access_token(access_token)
+            .user_attributes(
+                AttributeType::builder()
+                    .name("email")
+                    .value(email.as_str())
+                    .build()
+                    .map_err(|e| IdentityProviderError::InternalError {
+                        message: e.to_string(),
+                    })?,
+            )
+            .send()
+            .await
+            .map(|_| ())
+            .map_err(|e| e.into_service_error().into())
+    }
+
+    async fn confirm_change_email(
+        &self,
+        access_token: String,
+        code: String,
+    ) -> Result<(), IdentityProviderError> {
+        self.client
+            .verify_user_attribute()
+            .access_token(access_token)
+            .attribute_name("email")
+            .code(code)
+            .send()
+            .await
+            .map(|_| ())
+            .map_err(|e| e.into_service_error().into())
+    }
+
     async fn build_token_decoder(
         &self,
     ) -> Result<impl JwtDecoder<Claims> + 'static, IdentityProviderError> {
@@ -419,6 +460,39 @@ impl From<GlobalSignOutError> for IdentityProviderError {
     fn from(e: GlobalSignOutError) -> Self {
         match e {
             GlobalSignOutError::InvalidParameterException(_) => Self::InvalidParameter,
+            _ => Self::InternalError {
+                message: e.to_string(),
+            },
+        }
+    }
+}
+
+impl From<UpdateUserAttributesError> for IdentityProviderError {
+    fn from(e: UpdateUserAttributesError) -> Self {
+        match e {
+            UpdateUserAttributesError::InvalidParameterException(_) => Self::InvalidParameter,
+            UpdateUserAttributesError::CodeDeliveryFailureException(_) => Self::CodeDeliveryFailure,
+            UpdateUserAttributesError::NotAuthorizedException(_) => Self::NotAuthorized,
+            UpdateUserAttributesError::UserNotFoundException(_) => Self::UserNotFound,
+            UpdateUserAttributesError::UserNotConfirmedException(_) => Self::UserNotConfirmed,
+            UpdateUserAttributesError::AliasExistsException(_) => Self::UserAlreadyExists,
+            _ => Self::InternalError {
+                message: e.to_string(),
+            },
+        }
+    }
+}
+
+impl From<VerifyUserAttributeError> for IdentityProviderError {
+    fn from(e: VerifyUserAttributeError) -> Self {
+        match e {
+            VerifyUserAttributeError::InvalidParameterException(_) => Self::InvalidParameter,
+            VerifyUserAttributeError::CodeMismatchException(_) => Self::CodeMismatch,
+            VerifyUserAttributeError::ExpiredCodeException(_) => Self::ExpiredCode,
+            VerifyUserAttributeError::NotAuthorizedException(_) => Self::NotAuthorized,
+            VerifyUserAttributeError::UserNotFoundException(_) => Self::UserNotFound,
+            VerifyUserAttributeError::UserNotConfirmedException(_) => Self::UserNotConfirmed,
+            VerifyUserAttributeError::AliasExistsException(_) => Self::UserAlreadyExists,
             _ => Self::InternalError {
                 message: e.to_string(),
             },
@@ -936,6 +1010,68 @@ mod tests {
             .unwrap();
         let result = identity_provider.sign_out(result.access_token).await;
         assert!(result.is_ok());
+        tear_down().await;
+    }
+
+    #[tokio::test]
+    #[ignore = "requires AWS Cognito"]
+    async fn test_change_email_with_success() {
+        set_up().await;
+        let identity_provider = build_cognito_identity_provider().await;
+        let email = Email::new(TEST_EMAILS[2]).unwrap();
+        let cognito_user = create_cognito_user(email.clone()).await.user.unwrap();
+        let username = cognito_user.username().unwrap().to_owned();
+        let output = identity_provider.sign_in(email.clone()).await.unwrap();
+        let confirmation_code = fetch_confirmation_code(&username, email.as_str()).await;
+        let result = identity_provider
+            .confirm_sign_in(output.session, email, confirmation_code)
+            .await
+            .unwrap();
+        let email = Email::new(TEST_EMAILS[1]).unwrap();
+        let access_token = result.access_token;
+        let result = identity_provider
+            .change_email(access_token.clone(), email.clone())
+            .await;
+        assert!(result.is_ok());
+        tear_down().await;
+    }
+
+    #[tokio::test]
+    #[ignore = "requires AWS Cognito"]
+    async fn test_confirm_change_email_with_succcess() {
+        set_up().await;
+        let identity_provider = build_cognito_identity_provider().await;
+        let email = Email::new(TEST_EMAILS[2]).unwrap();
+        let cognito_user = create_cognito_user(email.clone()).await.user.unwrap();
+        let username = cognito_user.username().unwrap().to_owned();
+        let output = identity_provider.sign_in(email.clone()).await.unwrap();
+        let confirmation_code = fetch_confirmation_code(&username, email.as_str()).await;
+        let result = identity_provider
+            .confirm_sign_in(output.session, email, confirmation_code)
+            .await
+            .unwrap();
+        let email = Email::new(TEST_EMAILS[1]).unwrap();
+        let access_token = result.access_token;
+        identity_provider
+            .change_email(access_token.clone(), email.clone())
+            .await
+            .unwrap();
+        let confirmation_code = fetch_confirmation_code(&username, email.as_str()).await;
+        let result = identity_provider
+            .confirm_change_email(access_token, confirmation_code)
+            .await;
+        assert!(result.is_ok());
+        let cognito_user = identity_provider
+            .request_admin_get_user(email.clone())
+            .await
+            .unwrap();
+        let email_attribute = cognito_user
+            .user_attributes()
+            .iter()
+            .find(|attribute| attribute.name() == "email")
+            .and_then(|attribute| attribute.value())
+            .unwrap();
+        assert_eq!(email_attribute, email.as_str());
         tear_down().await;
     }
 }

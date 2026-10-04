@@ -47,6 +47,8 @@ pub enum IdentityProviderError {
     CodeMismatch,
     #[error("expired code")]
     ExpiredCode,
+    #[error("not authorized")]
+    NotAuthorized,
     #[error("internal error: {message:?}")]
     InternalError { message: String },
 }
@@ -71,6 +73,16 @@ pub trait IdentityProvider: Send + Sync {
         code: String,
     ) -> Result<ConfirmSignInResult, IdentityProviderError>;
     async fn sign_out(&self, access_token: String) -> Result<(), IdentityProviderError>;
+    async fn change_email(
+        &self,
+        access_token: String,
+        email: Email,
+    ) -> Result<(), IdentityProviderError>;
+    async fn confirm_change_email(
+        &self,
+        access_token: String,
+        code: String,
+    ) -> Result<(), IdentityProviderError>;
     async fn build_token_decoder(
         &self,
     ) -> Result<impl JwtDecoder<Claims> + 'static, IdentityProviderError>

@@ -10,11 +10,16 @@ use crate::application::usecase::errors::UsecaseError;
 pub enum PresentationError {
     #[error("bad request: {0}")]
     BadRequest(String),
+    #[error("unauthorized")]
+    Unauthorized,
 }
 
 impl From<UsecaseError> for PresentationError {
     fn from(error: UsecaseError) -> Self {
-        PresentationError::BadRequest(error.to_string())
+        match error {
+            UsecaseError::NotAuthorized => PresentationError::Unauthorized,
+            _ => PresentationError::BadRequest(error.to_string()),
+        }
     }
 }
 impl IntoResponse for PresentationError {
@@ -22,6 +27,9 @@ impl IntoResponse for PresentationError {
         match self {
             PresentationError::BadRequest(message) => {
                 (StatusCode::BAD_REQUEST, message).into_response()
+            }
+            PresentationError::Unauthorized => {
+                (StatusCode::UNAUTHORIZED, "unauthorized").into_response()
             }
         }
     }
