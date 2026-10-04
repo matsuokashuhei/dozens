@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
     let decoder: Decoder<Claims> = match env::var("AUTH_MODE").as_deref() {
         Ok("local") => {
             warn!("local auth mode; do not use in production");
-            Arc::new(local_auth::build_decoder()?)
+            Arc::new(local_auth::LocalTokenDecoder::new())
         }
         _ => Arc::new(identity_provider.build_token_decoder().await?),
     };

@@ -20,16 +20,17 @@ APIサーバはアクセストークンの検証に `RemoteJwksDecoder` を使�
 2つの部品だけを追加する。
 
 1. **HS256 ローカルデコーダ**(`infrastructure/service/local_auth.rs`)
-   - `axum_jwt_auth::LocalDecoder` を `DecodingKey::from_secret(SECRET)` で構築
+   - `LocalTokenDecoder` が `JwtDecoder<Claims>` を実装し、
+     `jsonwebtoken::decode` + `DecodingKey::from_secret(SECRET)` で検証
    - `SECRET` はコード内にハードコード(開発専用、env不要)
-   - `iss` は `CognitoIdentityProvider::issuer()`、
-     `aud` は `AWS_COGNITO_USER_POOL_CLIENT_ID` と同じ値を使う
-     → クレームの形は本番トークンと同じで、検証ロジックも同じ経路を通る
+   - `Validation` は Cognito 版と同じ設定(HS256, `iss`/`exp`/`sub` 必須、`aud` 無し)
+   - `iss` は `CognitoIdentityProvider::issuer()` を使い、
+     クレームはプロダクションの `Claims`(`sub`/`exp`/`iss`)そのもの
 
 2. **開発用トークン発行バイナリ**(`src/bin/dev_token.rs`)
    - `LOCAL_AUTH_SUB`(省略時は固定UUID)を `get_user_by_sub` で検索し、
      無ければ user + user_identity を作成(冪等)
-   - その `sub` で HS256 JWT(`{sub, iss, aud, exp, token_use:"access"}`)を
+   - その `sub` で本番と同じ `Claims`(`{sub, iss, exp}`)の HS256 JWT を
      生成して `Authorization: Bearer <token>` を stdout に出力
 
 ### 起動時の切替
@@ -40,7 +41,7 @@ APIサーバはアクセストークンの検証に `RemoteJwksDecoder` を使�
 let decoder: Decoder<Claims> = match env::var("AUTH_MODE").as_deref() {
     Ok("local") => {
         warn!("local auth mode; do not use in production");
-        Arc::new(local_auth::build_decoder()?)
+        Arc::new(local_auth::LocalTokenDecoder::new())
     }
     _ => Arc::new(identity_provider.build_token_decoder().await?),
 };
@@ -52,7 +53,7 @@ let decoder: Decoder<Claims> = match env::var("AUTH_MODE").as_deref() {
 |---|---|---|
 | `AUTH_MODE` | `cognito` (default) / `local` | デコーダ切替 |
 | `LOCAL_AUTH_SUB` | デフォルト `00000000-...-000000000000` | dev_token が使うダミーsubject |
-| `AWS_REGION` / `AWS_COGNITO_USER_POOL_ID` / `AWS_COGNITO_USER_POOL_CLIENT_ID` | iss/aud の構成値 | Cognito呼出しは不要、値だけ参照 |
+| `AWS_REGION` / `AWS_COGNITO_USER_POOL_ID` | iss の構成値 | Cognito呼出しは不要、値だけ参照 |
 
 ## 使い方
 
