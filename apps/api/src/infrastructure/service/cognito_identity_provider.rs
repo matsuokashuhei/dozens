@@ -1012,4 +1012,66 @@ mod tests {
         assert!(result.is_ok());
         tear_down().await;
     }
+
+    #[tokio::test]
+    #[ignore = "requires AWS Cognito"]
+    async fn test_change_email_with_success() {
+        set_up().await;
+        let identity_provider = build_cognito_identity_provider().await;
+        let email = Email::new(TEST_EMAILS[2]).unwrap();
+        let cognito_user = create_cognito_user(email.clone()).await.user.unwrap();
+        let username = cognito_user.username().unwrap().to_owned();
+        let output = identity_provider.sign_in(email.clone()).await.unwrap();
+        let confirmation_code = fetch_confirmation_code(&username, email.as_str()).await;
+        let result = identity_provider
+            .confirm_sign_in(output.session, email, confirmation_code)
+            .await
+            .unwrap();
+        let email = Email::new(TEST_EMAILS[1]).unwrap();
+        let access_token = result.access_token;
+        let result = identity_provider
+            .change_email(access_token.clone(), email.clone())
+            .await;
+        assert!(result.is_ok());
+        tear_down().await;
+    }
+
+    #[tokio::test]
+    #[ignore = "requires AWS Cognito"]
+    async fn test_confirm_change_email_with_succcess() {
+        set_up().await;
+        let identity_provider = build_cognito_identity_provider().await;
+        let email = Email::new(TEST_EMAILS[2]).unwrap();
+        let cognito_user = create_cognito_user(email.clone()).await.user.unwrap();
+        let username = cognito_user.username().unwrap().to_owned();
+        let output = identity_provider.sign_in(email.clone()).await.unwrap();
+        let confirmation_code = fetch_confirmation_code(&username, email.as_str()).await;
+        let result = identity_provider
+            .confirm_sign_in(output.session, email, confirmation_code)
+            .await
+            .unwrap();
+        let email = Email::new(TEST_EMAILS[1]).unwrap();
+        let access_token = result.access_token;
+        identity_provider
+            .change_email(access_token.clone(), email.clone())
+            .await
+            .unwrap();
+        let confirmation_code = fetch_confirmation_code(&username, email.as_str()).await;
+        let result = identity_provider
+            .confirm_change_email(access_token, confirmation_code)
+            .await;
+        assert!(result.is_ok());
+        let cognito_user = identity_provider
+            .request_admin_get_user(email.clone())
+            .await
+            .unwrap();
+        let email_attribute = cognito_user
+            .user_attributes()
+            .iter()
+            .find(|attribute| attribute.name() == "email")
+            .and_then(|attribute| attribute.value())
+            .unwrap();
+        assert_eq!(email_attribute, email.as_str());
+        tear_down().await;
+    }
 }
