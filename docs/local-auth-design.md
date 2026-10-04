@@ -27,11 +27,11 @@ APIサーバはアクセストークンの検証に `RemoteJwksDecoder` を使�
    - `iss` は `CognitoIdentityProvider::issuer()` を使い、
      クレームはプロダクションの `Claims`(`sub`/`exp`/`iss`)そのもの
 
-2. **開発用トークン発行バイナリ**(`src/bin/dev_token.rs`)
+2. **テストサポート**(`infrastructure/test_support.rs`)
+   - `issue_local_access_token() -> (User, String)` を追加
    - 実行ごとに UUID v7 のダミー `sub` を生成し、
      user + user_identity を作成
-   - その `sub` で本番と同じ `Claims`(`{sub, iss, exp}`)の HS256 JWT を
-     生成して `Authorization: Bearer <token>` を stdout に出力
+   - その `sub` で本番と同じ `Claims`(`{sub, iss, exp}`)の HS256 JWT を返す
 
 ### 起動時の切替
 
@@ -60,7 +60,7 @@ let decoder: Decoder<Claims> = match env::var("AUTH_MODE").as_deref() {
 docker compose -f apps/compose.yml up -d postgres
 cd apps/api && cargo run --bin toasty -- migration apply
 AUTH_MODE=local cargo run --bin api          # AWS_* は .env.test 等で設定
-cargo run --bin dev_token                    # => Authorization: Bearer ...
+# テストやスクリプトから test_support::issue_local_access_token() でトークン取得
 curl -H "Authorization: Bearer <token>" localhost:3000/user
 ```
 
