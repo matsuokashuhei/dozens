@@ -1,3 +1,5 @@
+pub mod change_email_router;
+pub mod confirm_change_email_router;
 pub mod confirm_sign_in_router;
 pub mod confirm_sign_up_router;
 pub mod get_user_router;

@@ -7,6 +7,8 @@ use api::{
         service::identity_provider::{Claims, IdentityProvider},
         usecase::{
             authenticate_user_usecase::AuthenticateUserUsecase,
+            change_email_usecase::ChangeEmailUsecase,
+            confirm_change_email_usecase::ConfirmChangeEmailUsecase,
             confirm_sign_in_usecase::ConfirmSignInUsecase,
             confirm_sign_up_usecase::ConfirmSignUpUsecase, sign_in_usecase::SignInUsecase,
             sign_out_usecase::SignOutUsecase, sign_up_usecase::SignUpUsecase,
@@ -25,6 +27,8 @@ use api::{
     },
     presentation::{
         handler::{
+            change_email_handler::ChangeEmailHandler,
+            confirm_change_email_handler::ConfirmChangeEmailHandler,
             confirm_sign_in_handler::ConfirmSignInHandler,
             confirm_sign_up_handler::ConfirmSignUpHandler, get_user_handler::GetUserHandler,
             sign_in_handler::SignInHandler, sign_out_handler::SignOutHandler,
@@ -32,6 +36,8 @@ use api::{
         },
         middleware::token_authenticator,
         router::{
+            change_email_router::ChangeEmailRouter,
+            confirm_change_email_router::ConfirmChangeEmailRouter,
             confirm_sign_in_router::ConfirmSignInRouter,
             confirm_sign_up_router::ConfirmSignUpRouter, get_user_router::GetUserRouter,
             sign_in_router::SignInRouter, sign_out_router::SignOutRouter,
@@ -94,6 +100,20 @@ async fn main() -> Result<()> {
     let sign_out_usecase = SignOutUsecase::new(Arc::new(identity_provider));
     let sign_out_handler = SignOutHandler::new(Arc::new(sign_out_usecase));
     let sign_out_router = SignOutRouter::new(Arc::new(sign_out_handler));
+    // change email
+    let client = aws_sdk_cognitoidentityprovider::Client::new(&aws_config);
+    let identity_provider = CognitoIdentityProvider::new(client);
+    let change_email_usecase = ChangeEmailUsecase::new(Arc::new(identity_provider));
+    let change_email_handler = ChangeEmailHandler::new(Arc::new(change_email_usecase));
+    let change_email_router = ChangeEmailRouter::new(Arc::new(change_email_handler));
+    // confirm change email
+    let client = aws_sdk_cognitoidentityprovider::Client::new(&aws_config);
+    let identity_provider = CognitoIdentityProvider::new(client);
+    let confirm_change_email_usecase = ConfirmChangeEmailUsecase::new(Arc::new(identity_provider));
+    let confirm_change_email_handler =
+        ConfirmChangeEmailHandler::new(Arc::new(confirm_change_email_usecase));
+    let confirm_change_email_router =
+        ConfirmChangeEmailRouter::new(Arc::new(confirm_change_email_handler));
     // get user
     let authenticate_user_usecase = Arc::new(AuthenticateUserUsecase::new(user_repository.clone()));
     let get_user_handler = GetUserHandler::new();
@@ -106,6 +126,8 @@ async fn main() -> Result<()> {
         .merge(sign_in_router.routes())
         .merge(confirm_sign_in_router.routes())
         .merge(sign_out_router.routes())
+        .merge(change_email_router.routes())
+        .merge(confirm_change_email_router.routes())
         .merge(get_user_router.routes())
         .layer(token_authenticator::extension(decoder))
         .layer(Extension(authenticate_user_usecase))
