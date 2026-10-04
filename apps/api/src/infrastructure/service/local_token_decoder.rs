@@ -78,3 +78,68 @@ impl JwtDecoder<Claims> for LocalTokenDecoder {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use axum::Router;
+    use axum::body::Body;
+    use axum::http::{Request, StatusCode, header::AUTHORIZATION};
+    use axum::routing::get;
+    use tower::ServiceExt;
+    use uuid::Uuid;
+
+    use crate::presentation::middleware::token_authenticator::{TokenAuthenticator, extension};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn issued_access_token_passes_authentication() {
+        let decoder = LocalTokenDecoder::new();
+        let sub = Uuid::now_v7().to_string();
+        let token = issue_access_token(&sub, 3600).unwrap();
+
+        let app = Router::new()
+            .route(
+                "/",
+                get(|auth: TokenAuthenticator| async move { auth.subject().unwrap().to_string() }),
+            )
+            .layer(extension(Arc::new(decoder)));
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/")
+                    .header(AUTHORIZATION, format!("Bearer {token}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        assert_eq!(body, sub.as_bytes());
+    }
+
+    #[tokio::test]
+    async fn rejects_invalid_token() {
+        let decoder = LocalTokenDecoder::new();
+
+        let app = Router::new()
+            .route("/", get(|_: TokenAuthenticator| async { StatusCode::OK }))
+            .layer(extension(Arc::new(decoder)));
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/")
+                    .header(AUTHORIZATION, "Bearer not-a-jwt")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    }
+}
