@@ -1,9 +1,10 @@
+use std::env;
 use std::sync::Arc;
 
 use anyhow::Result;
 use api::{
     application::{
-        service::identity_provider::IdentityProvider,
+        service::identity_provider::{Claims, IdentityProvider},
         usecase::{
             authenticate_user_usecase::AuthenticateUserUsecase,
             confirm_sign_in_usecase::ConfirmSignInUsecase,
@@ -17,7 +18,7 @@ use api::{
             build_db_connection, user_identity_repository::UserIdentityRepositoryImpl,
             user_repository::UserRepositoryImpl,
         },
-        service::cognito_identity_provider::CognitoIdentityProvider,
+        service::{cognito_identity_provider::CognitoIdentityProvider, local_token_decoder},
     },
     presentation::{
         handler::{
@@ -36,9 +37,10 @@ use api::{
     },
 };
 use axum::{Extension, Router, http::StatusCode, routing::get};
+use axum_jwt_auth::Decoder;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
-use tracing::Level;
+use tracing::{Level, warn};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -53,7 +55,13 @@ async fn main() -> Result<()> {
     // sign up
     let client = aws_sdk_cognitoidentityprovider::Client::new(&aws_config);
     let identity_provider = CognitoIdentityProvider::new(client);
-    let decoder = identity_provider.build_token_decoder().await?;
+    let decoder: Decoder<Claims> = match env::var("AUTH_MODE").as_deref() {
+        Ok("local") => {
+            warn!("local auth mode; do not use in production");
+            Arc::new(local_token_decoder::LocalTokenDecoder::new())
+        }
+        _ => Arc::new(identity_provider.build_token_decoder().await?),
+    };
     let user_identity_repository = UserIdentityRepositoryImpl::new(db.clone());
     let sign_up_usecase = SignUpUsecase::new(
         Arc::new(identity_provider),
