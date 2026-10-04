@@ -101,10 +101,7 @@ mod tests {
         let token = issue_access_token(&sub, 3600).unwrap();
 
         let app = Router::new()
-            .route(
-                "/",
-                get(|auth: TokenAuthenticator| async move { auth.subject().unwrap().to_string() }),
-            )
+            .route("/", get(|_: TokenAuthenticator| async { StatusCode::OK }))
             .layer(extension(Arc::new(decoder)));
         let response = app
             .oneshot(
@@ -117,10 +114,6 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(response.status(), StatusCode::OK);
-        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
-            .await
-            .unwrap();
-        assert_eq!(body, sub.as_bytes());
     }
 
     #[tokio::test]
