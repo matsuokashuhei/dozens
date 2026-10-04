@@ -11,7 +11,7 @@ use api::{
             build_db_connection, user_identity_repository::UserIdentityRepositoryImpl,
             user_repository::UserRepositoryImpl,
         },
-        service::local_auth,
+        service::local_token_decoder,
     },
 };
 
@@ -21,8 +21,8 @@ async fn main() -> Result<()> {
     let user_repository = UserRepositoryImpl::new(db.clone());
     let user_identity_repository = UserIdentityRepositoryImpl::new(db);
 
-    let iss = local_auth::issuer();
-    let sub = local_auth::subject();
+    let iss = local_token_decoder::issuer();
+    let sub = local_token_decoder::subject();
     let user = match user_repository.get_user_by_sub(&sub).await {
         Ok(user) => user,
         Err(_) => {
@@ -36,7 +36,7 @@ async fn main() -> Result<()> {
         }
     };
 
-    let token = local_auth::issue_access_token(&sub, 3600)?;
+    let token = local_token_decoder::issue_access_token(&sub, 3600)?;
     println!("user_id: {}", user.id);
     println!("sub: {sub}");
     println!("Authorization: Bearer {token}");

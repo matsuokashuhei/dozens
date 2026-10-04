@@ -1,2 +1,2 @@
 pub mod cognito_identity_provider;
-pub mod local_auth;
+pub mod local_token_decoder;

@@ -19,7 +19,7 @@ APIサーバはアクセストークンの検証に `RemoteJwksDecoder` を使�
 
 2つの部品だけを追加する。
 
-1. **HS256 ローカルデコーダ**(`infrastructure/service/local_auth.rs`)
+1. **HS256 ローカルデコーダ**(`infrastructure/service/local_token_decoder.rs`)
    - `LocalTokenDecoder` が `JwtDecoder<Claims>` を実装し、
      `jsonwebtoken::decode` + `DecodingKey::from_secret(SECRET)` で検証
    - `SECRET` はコード内にハードコード(開発専用、env不要)
@@ -41,7 +41,7 @@ APIサーバはアクセストークンの検証に `RemoteJwksDecoder` を使�
 let decoder: Decoder<Claims> = match env::var("AUTH_MODE").as_deref() {
     Ok("local") => {
         warn!("local auth mode; do not use in production");
-        Arc::new(local_auth::LocalTokenDecoder::new())
+        Arc::new(local_token_decoder::LocalTokenDecoder::new())
     }
     _ => Arc::new(identity_provider.build_token_decoder().await?),
 };

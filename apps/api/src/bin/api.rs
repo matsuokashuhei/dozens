@@ -18,7 +18,7 @@ use api::{
             build_db_connection, user_identity_repository::UserIdentityRepositoryImpl,
             user_repository::UserRepositoryImpl,
         },
-        service::{cognito_identity_provider::CognitoIdentityProvider, local_auth},
+        service::{cognito_identity_provider::CognitoIdentityProvider, local_token_decoder},
     },
     presentation::{
         handler::{
@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
     let decoder: Decoder<Claims> = match env::var("AUTH_MODE").as_deref() {
         Ok("local") => {
             warn!("local auth mode; do not use in production");
-            Arc::new(local_auth::LocalTokenDecoder::new())
+            Arc::new(local_token_decoder::LocalTokenDecoder::new())
         }
         _ => Arc::new(identity_provider.build_token_decoder().await?),
     };
