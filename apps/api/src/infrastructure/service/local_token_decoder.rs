@@ -1,4 +1,3 @@
-use std::env;
 use std::future::Future;
 use std::pin::Pin;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -13,7 +12,6 @@ use crate::{
 
 // Development-only shared secret for HS256 tokens. Never used outside local auth mode.
 const SECRET: &[u8] = b"dozens-local-auth-secret";
-const DEFAULT_SUB: &str = "00000000-0000-0000-0000-000000000000";
 
 pub fn issuer() -> String {
     CognitoIdentityProvider::issuer()
@@ -26,10 +24,6 @@ fn validation() -> Validation {
     validation.set_issuer(&[issuer()]);
     validation.set_required_spec_claims(&["exp", "iss", "sub"]);
     validation
-}
-
-pub fn subject() -> String {
-    env::var("LOCAL_AUTH_SUB").unwrap_or_else(|_| DEFAULT_SUB.to_string())
 }
 
 pub fn issue_access_token(

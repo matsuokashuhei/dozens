@@ -14,6 +14,7 @@ use api::{
         service::local_token_decoder,
     },
 };
+use uuid::Uuid;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -22,19 +23,13 @@ async fn main() -> Result<()> {
     let user_identity_repository = UserIdentityRepositoryImpl::new(db);
 
     let iss = local_token_decoder::issuer();
-    let sub = local_token_decoder::subject();
-    let user = match user_repository.get_user_by_sub(&sub).await {
-        Ok(user) => user,
-        Err(_) => {
-            let user = user_repository
-                .create_user(User::new(Username::generate().as_str().to_string()))
-                .await?;
-            user_identity_repository
-                .create_user_identity(UserIdentity::new(user.id, iss, sub.clone()))
-                .await?;
-            user
-        }
-    };
+    let sub = Uuid::now_v7().to_string();
+    let user = user_repository
+        .create_user(User::new(Username::generate().as_str().to_string()))
+        .await?;
+    user_identity_repository
+        .create_user_identity(UserIdentity::new(user.id, iss, sub.clone()))
+        .await?;
 
     let token = local_token_decoder::issue_access_token(&sub, 3600)?;
     println!("user_id: {}", user.id);
