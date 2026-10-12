@@ -62,25 +62,29 @@ extension StubTimelineRepository {
     private static let videoURL = Bundle.module.url(forResource: "stub-rap", withExtension: "mp4")!
 
     private static func makeCyphers(now: Date) -> [Cypher] {
-        (0..<12).map { c in
+        (0..<12).map { (c: Int) -> Cypher in
             let id = "cypher-\(c)"
-            let raps = (0..<(2 + c % 3)).map { r in
-                Rap(
-                    id: "rap-\(c)-\(r)",
-                    cypherID: id,
-                    rapper: rappers[(c + r) % rappers.count],
-                    videoURL: videoURL,
-                    statistics: RapStatistics(
-                        views: (c * 37 + r * 11) % 500 + 3,
-                        likes: (c * 13 + r * 7) % 120,
-                        comments: (c * 5 + r * 3) % 30,
-                        hookups: r
-                    ),
-                    createdAt: now.addingTimeInterval(-Double(c * 3 + r) * 47 * 60)
-                )
-            }
+            let raps = (0..<(2 + c % 3)).map { (r: Int) -> Rap in makeRap(cypher: c, index: r, cypherID: id, now: now) }
             return Cypher(id: id, beat: beats[c % beats.count], raps: raps)
         }
+    }
+
+    private static func makeRap(cypher c: Int, index r: Int, cypherID: Cypher.ID, now: Date) -> Rap {
+        let statistics = RapStatistics(
+            views: (c * 37 + r * 11) % 500 + 3,
+            likes: (c * 13 + r * 7) % 120,
+            comments: (c * 5 + r * 3) % 30,
+            hookups: r
+        )
+        let minutesAgo = Double(c * 3 + r) * 47
+        return Rap(
+            id: "rap-\(c)-\(r)",
+            cypherID: cypherID,
+            rapper: rappers[(c + r) % rappers.count],
+            videoURL: videoURL,
+            statistics: statistics,
+            createdAt: now.addingTimeInterval(-minutesAgo * 60)
+        )
     }
 
     private static func entries(for feed: TimelineFeed, in cyphers: [Cypher]) -> [TimelineEntry] {
