@@ -1,0 +1,35 @@
+name: iOS
+
+on:
+  push:
+    branches: [main, ios]
+    paths:
+      - apps/ios/**
+      - .github/workflows/ios.yml
+  pull_request:
+    paths:
+      - apps/ios/**
+      - .github/workflows/ios.yml
+
+jobs:
+  test:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "27"
+      - name: Test DozensKit
+        working-directory: apps/ios/Packages/DozensKit
+        run: |
+          xcodebuild test \
+            -scheme DozensKit \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest'
+      - name: Build app
+        working-directory: apps/ios/Dozens
+        run: |
+          xcodebuild build \
+            -project Dozens.xcodeproj \
+            -scheme Dozens \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            CODE_SIGNING_ALLOWED=NO
