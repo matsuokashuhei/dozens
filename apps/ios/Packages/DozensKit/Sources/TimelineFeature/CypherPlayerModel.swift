@@ -12,6 +12,8 @@ public final class CypherPlayerModel {
     public var currentRapID: Rap.ID?
 
     public let player = AVPlayer()
+    /// 設定されていればプレイヤーにフックアップボタンを出す。
+    public var onHookUp: ((Cypher, Rap) -> Void)?
 
     private let cypherID: Cypher.ID
     private let startRapID: Rap.ID

@@ -21,6 +21,23 @@ struct CypherPlayerView: View {
             .task { await model.load() }
             .task(id: model.currentRapID) { await model.playCurrentRap() }
             .onDisappear { model.player.pause() }
+            .toolbar {
+                if let onHookUp = model.onHookUp, let cypher = model.cypher, let rap = model.currentRap {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            model.player.pause()
+                            onHookUp(cypher, rap)
+                        } label: {
+                            Label {
+                                Text("Hook Up", bundle: .module)
+                            } icon: {
+                                Image(systemName: "plus.circle")
+                            }
+                        }
+                        .accessibilityIdentifier("player.hookUp")
+                    }
+                }
+            }
     }
 
     @ViewBuilder

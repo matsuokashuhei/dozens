@@ -22,6 +22,8 @@ public final class TimelineModel {
 
     private var nextCursor: String?
     private var isLoadingMore = false
+    /// プレイヤーのフックアップボタンが押されたときに呼ばれる。
+    public var onHookUp: ((Cypher, Rap) -> Void)?
     private let reader: TimelineReader
 
     public init(reader: TimelineReader) {
@@ -57,6 +59,8 @@ public final class TimelineModel {
     }
 
     public func playerModel(for entry: TimelineEntry) -> CypherPlayerModel {
-        CypherPlayerModel(cypherID: entry.rap.cypherID, startRapID: entry.rap.id, reader: reader)
+        let player = CypherPlayerModel(cypherID: entry.rap.cypherID, startRapID: entry.rap.id, reader: reader)
+        player.onHookUp = onHookUp
+        return player
     }
 }

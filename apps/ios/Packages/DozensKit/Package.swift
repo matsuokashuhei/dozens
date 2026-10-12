@@ -26,7 +26,7 @@ let package = Package(
         .target(
             name: "Infrastructure",
             dependencies: ["Domain"],
-            resources: [.copy("Resources/stub-rap.mp4")],
+            resources: [.copy("Resources/stub-rap.mp4"), .copy("Resources/stub-beat.m4a")],
             swiftSettings: coreSettings
         ),
         .target(name: "DesignSystem", resources: [.process("Resources")], swiftSettings: uiSettings),
@@ -43,8 +43,14 @@ let package = Package(
             swiftSettings: uiSettings
         ),
         .target(
+            name: "RecordFeature",
+            dependencies: ["Domain", "Application", "DesignSystem"],
+            resources: [.process("Resources")],
+            swiftSettings: uiSettings
+        ),
+        .target(
             name: "AppFeature",
-            dependencies: ["Domain", "Application", "Infrastructure", "DesignSystem", "AuthFeature", "TimelineFeature"],
+            dependencies: ["Domain", "Application", "Infrastructure", "DesignSystem", "AuthFeature", "TimelineFeature", "RecordFeature"],
             resources: [.process("Resources")],
             swiftSettings: uiSettings
         ),
@@ -62,6 +68,11 @@ let package = Package(
         .testTarget(
             name: "AuthFeatureTests",
             dependencies: ["AuthFeature", "Application", "Domain"],
+            swiftSettings: uiSettings
+        ),
+        .testTarget(
+            name: "RecordFeatureTests",
+            dependencies: ["RecordFeature", "Application", "Domain"],
             swiftSettings: uiSettings
         ),
     ],

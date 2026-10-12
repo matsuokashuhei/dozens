@@ -1,6 +1,7 @@
 import Application
 import DesignSystem
 import Domain
+import RecordFeature
 import SwiftUI
 import TimelineFeature
 
@@ -13,6 +14,7 @@ struct MainTabView: View {
     let session: SessionStore
     @State private var selection: Tab = .timeline
     @State private var timeline: TimelineModel
+    @State private var record: RecordModel
 
     init(user: User, session: SessionStore, dependencies: AppDependencies) {
         self.user = user
@@ -25,6 +27,15 @@ struct MainTabView: View {
                 )
             )
         )
+        _record = State(
+            initialValue: RecordModel(
+                service: RecordingService(
+                    beatRepository: dependencies.beatRepository,
+                    publisher: dependencies.rapPublisher,
+                    tokenStore: dependencies.tokenStore
+                )
+            )
+        )
     }
 
     var body: some View {
@@ -33,7 +44,7 @@ struct MainTabView: View {
                 TimelineView(model: timeline)
             }
             SwiftUI.Tab(String(localized: "Record", bundle: .module), systemImage: "record.circle", value: .record) {
-                ComingSoonView(title: String(localized: "Record", bundle: .module), systemImage: "record.circle")
+                RecordView(model: record)
             }
             SwiftUI.Tab(String(localized: "Notifications", bundle: .module), systemImage: "bell", value: .notifications) {
                 ComingSoonView(title: String(localized: "Notifications", bundle: .module), systemImage: "bell")
@@ -48,6 +59,12 @@ struct MainTabView: View {
         #if os(iOS)
         .tabBarMinimizeBehavior(.onScrollDown)
         #endif
+        .onAppear {
+            timeline.onHookUp = { [record] cypher, rap in
+                record.start(hookUp: RecordModel.HookUp(rapID: rap.id, beatID: cypher.beat.id))
+                selection = .record
+            }
+        }
     }
 }
 
