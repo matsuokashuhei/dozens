@@ -4,6 +4,8 @@ import Infrastructure
 struct AppDependencies: Sendable {
     let authRepository: any AuthRepository
     let tokenStore: any TokenStore
+    /// API にタイムラインのエンドポイントができるまでは、API モードでもスタブを使う。
+    let timelineRepository: any TimelineRepository = StubTimelineRepository()
 
     init(configuration: AppConfiguration) {
         switch configuration.backend {

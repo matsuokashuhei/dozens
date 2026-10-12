@@ -26,7 +26,7 @@ public struct AppRootView: View {
             case .signedOut:
                 SignedOutView(dependencies: dependencies, session: session)
             case .signedIn(let user):
-                MainTabView(user: user, session: session)
+                MainTabView(user: user, session: session, dependencies: dependencies)
             }
         }
         .animation(.default, value: session.state)
