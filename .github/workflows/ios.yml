@@ -1,0 +1,39 @@
+name: iOS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/ios/**
+      - .github/workflows/ios.yml
+  pull_request:
+    paths:
+      - apps/ios/**
+      - .github/workflows/ios.yml
+
+jobs:
+  test:
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: apps/ios
+    steps:
+      - uses: actions/checkout@v4
+      - run: xcodebuild -version
+      - name: Check generated project is up to date
+        run: |
+          brew install xcodegen
+          xcodegen generate
+          git diff --exit-code -- Dozens.xcodeproj App/Info.plist
+      - name: Test
+        run: |
+          xcodebuild test \
+            -project Dozens.xcodeproj \
+            -scheme Dozens \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -resultBundlePath TestResults.xcresult
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-test-results
+          path: apps/ios/TestResults.xcresult
