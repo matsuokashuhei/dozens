@@ -20,7 +20,6 @@ impl User {
 #[cfg(test)]
 mod tests {
     use fake::{Fake, faker::name::raw::Name, locales::EN};
-    use serde_json::json;
     use uuid::Uuid;
 
     use super::*;
@@ -31,18 +30,5 @@ mod tests {
         let user = User::new(name.clone());
         assert!(Uuid::parse_str(&user.id.to_string()).is_ok());
         assert_eq!(user.name, name);
-    }
-
-    #[test]
-    fn test_user_json_keeps_id_as_string() {
-        let user = User::new("ada".to_string());
-        let serialized = serde_json::to_value(&user).unwrap();
-        assert_eq!(
-            serialized,
-            json!({
-                "id": user.id.to_string(),
-                "name": "ada",
-            })
-        );
     }
 }

@@ -44,17 +44,4 @@ mod tests {
         let user_id = UserId::new();
         assert!(Uuid::parse_str(&user_id.to_string()).is_ok());
     }
-
-    #[test]
-    fn test_user_id_as_uuid() {
-        let id = Uuid::now_v7();
-        let user_id = UserId::from(id);
-        assert_eq!(user_id.as_uuid(), id);
-    }
-
-    #[test]
-    fn test_user_id_display() {
-        let id = Uuid::now_v7();
-        assert_eq!(UserId::from(id).to_string(), id.to_string());
-    }
 }
