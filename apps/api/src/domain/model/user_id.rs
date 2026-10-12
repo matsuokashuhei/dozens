@@ -3,11 +3,10 @@ use std::fmt;
 use serde::Serialize;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, toasty::Embed)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
 pub struct UserId(Uuid);
 
 impl UserId {
-    // No Default impl: the only zero value would be the nil UUID, meaningless as an id
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self(Uuid::now_v7())

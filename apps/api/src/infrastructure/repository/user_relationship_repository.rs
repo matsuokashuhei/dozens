@@ -17,9 +17,9 @@ pub(crate) struct UserRelationshipRecord {
     #[key]
     pub id: Uuid,
     #[index]
-    pub follower_id: UserId,
+    pub follower_id: Uuid,
     #[index]
-    pub followee_id: UserId,
+    pub followee_id: Uuid,
     #[auto]
     created_at: Timestamp,
 }
@@ -28,8 +28,8 @@ impl From<UserRelationshipRecord> for UserRelationship {
     fn from(record: UserRelationshipRecord) -> Self {
         UserRelationship {
             id: record.id,
-            follower_id: record.follower_id,
-            followee_id: record.followee_id,
+            follower_id: record.follower_id.into(),
+            followee_id: record.followee_id.into(),
         }
     }
 }
@@ -53,8 +53,8 @@ impl UserRelationshipRepository for UserRelationshipRepositoryImpl {
         let mut db = self.db.clone();
         let record = toasty::create!(UserRelationshipRecord {
             id: user_relationship.id,
-            follower_id: user_relationship.follower_id,
-            followee_id: user_relationship.followee_id,
+            follower_id: Uuid::from(user_relationship.follower_id),
+            followee_id: Uuid::from(user_relationship.followee_id),
         })
         .exec(&mut db)
         .await
@@ -69,8 +69,11 @@ impl UserRelationshipRepository for UserRelationshipRepositoryImpl {
     ) -> Result<UserRelationship, RepositoryError> {
         let mut db = self.db.clone();
         let record =
-            UserRelationshipRecord::filter_by_follower_id_and_followee_id(follower_id, followee_id)
-                .first()
+            UserRelationshipRecord::filter_by_follower_id_and_followee_id(
+                Uuid::from(follower_id),
+                Uuid::from(followee_id),
+            )
+            .first()
                 .exec(&mut db)
                 .await
                 .map_err(|e| RepositoryError::DatabaseError(e.to_string()))?
@@ -83,7 +86,7 @@ impl UserRelationshipRepository for UserRelationshipRepositoryImpl {
         follower_id: UserId,
     ) -> Result<Vec<UserRelationship>, RepositoryError> {
         let mut db = self.db.clone();
-        let records = UserRelationshipRecord::filter_by_follower_id(follower_id)
+        let records = UserRelationshipRecord::filter_by_follower_id(Uuid::from(follower_id))
             .exec(&mut db)
             .await
             .map_err(|e| RepositoryError::DatabaseError(e.to_string()))?;
@@ -95,7 +98,7 @@ impl UserRelationshipRepository for UserRelationshipRepositoryImpl {
         followee_id: UserId,
     ) -> Result<Vec<UserRelationship>, RepositoryError> {
         let mut db = self.db.clone();
-        let records = UserRelationshipRecord::filter_by_followee_id(followee_id)
+        let records = UserRelationshipRecord::filter_by_followee_id(Uuid::from(followee_id))
             .exec(&mut db)
             .await
             .map_err(|e| RepositoryError::DatabaseError(e.to_string()))?;
@@ -110,8 +113,8 @@ impl UserRelationshipRepository for UserRelationshipRepositoryImpl {
         let mut db = self.db.clone();
         UserRelationshipRecord::delete_by_follower_id_and_followee_id(
             &mut db,
-            follower_id,
-            followee_id,
+            Uuid::from(follower_id),
+            Uuid::from(followee_id),
         )
         .await
         .map_err(|e| RepositoryError::DatabaseError(e.to_string()))
@@ -133,19 +136,21 @@ mod tests {
         set_up().await;
         let mut db = test_support::build_db_connection().await.unwrap();
         let repository = UserRelationshipRepositoryImpl::new(db.clone());
-        let follower = UserRecord::create()
-            .id(UserId::new())
+        let follower_id = UserId::new();
+        let followee_id = UserId::new();
+        UserRecord::create()
+            .id(Uuid::from(follower_id))
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
             .unwrap();
-        let followee = UserRecord::create()
-            .id(UserId::new())
+        UserRecord::create()
+            .id(Uuid::from(followee_id))
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
             .unwrap();
-        let relationship = UserRelationship::new(follower.id, followee.id).unwrap();
+        let relationship = UserRelationship::new(follower_id, followee_id).unwrap();
         let relationship_id = relationship.id;
 
         let created = repository
@@ -153,35 +158,35 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(created.id, relationship_id);
-        assert_eq!(created.follower_id, follower.id);
-        assert_eq!(created.followee_id, followee.id);
+        assert_eq!(created.follower_id, follower_id);
+        assert_eq!(created.followee_id, followee_id);
 
         let fetched = repository
-            .get_user_relationship(follower.id, followee.id)
+            .get_user_relationship(follower_id, followee_id)
             .await
             .unwrap();
         assert_eq!(fetched.id, relationship_id);
 
         let following = repository
-            .list_user_relationships_by_follower(follower.id)
+            .list_user_relationships_by_follower(follower_id)
             .await
             .unwrap();
         assert_eq!(following.len(), 1);
         assert_eq!(following[0].id, relationship_id);
 
         let followers = repository
-            .list_user_relationships_by_followee(followee.id)
+            .list_user_relationships_by_followee(followee_id)
             .await
             .unwrap();
         assert_eq!(followers.len(), 1);
         assert_eq!(followers[0].id, relationship_id);
 
         repository
-            .delete_user_relationship(follower.id, followee.id)
+            .delete_user_relationship(follower_id, followee_id)
             .await
             .unwrap();
         let missing = repository
-            .get_user_relationship(follower.id, followee.id)
+            .get_user_relationship(follower_id, followee_id)
             .await;
         assert!(matches!(missing, Err(RepositoryError::NotFound(_))));
         tear_down().await;
@@ -192,19 +197,21 @@ mod tests {
         set_up().await;
         let mut db = test_support::build_db_connection().await.unwrap();
         let repository = UserRelationshipRepositoryImpl::new(db.clone());
-        let follower = UserRecord::create()
-            .id(UserId::new())
+        let follower_id = UserId::new();
+        let followee_id = UserId::new();
+        UserRecord::create()
+            .id(Uuid::from(follower_id))
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
             .unwrap();
-        let followee = UserRecord::create()
-            .id(UserId::new())
+        UserRecord::create()
+            .id(Uuid::from(followee_id))
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
             .unwrap();
-        let relationship = UserRelationship::new(follower.id, followee.id).unwrap();
+        let relationship = UserRelationship::new(follower_id, followee_id).unwrap();
 
         repository
             .create_user_relationship(relationship.clone())

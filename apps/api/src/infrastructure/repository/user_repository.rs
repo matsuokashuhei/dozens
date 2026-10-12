@@ -2,10 +2,11 @@ use async_trait::async_trait;
 use jiff::Timestamp;
 use toasty::Db;
 use toasty::stmt::{List, Query};
+use uuid::Uuid;
 
 use crate::{
     domain::{
-        model::{user::User, user_id::UserId},
+        model::user::User,
         repository::{errors::RepositoryError, user_repository::UserRepository},
     },
     infrastructure::repository::user_identity_repository::UserIdentityRecord,
@@ -15,7 +16,7 @@ use crate::{
 #[table = "users"]
 pub(crate) struct UserRecord {
     #[key]
-    pub id: UserId,
+    pub id: Uuid,
     pub name: String,
     #[auto]
     created_at: Timestamp,
@@ -29,7 +30,7 @@ pub(crate) struct UserRecord {
 impl From<UserRecord> for User {
     fn from(record: UserRecord) -> Self {
         User {
-            id: record.id,
+            id: record.id.into(),
             name: record.name,
         }
     }
@@ -50,7 +51,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn create_user(&self, user: User) -> Result<User, RepositoryError> {
         let mut db = self.db.clone();
         let record = toasty::create!(UserRecord {
-            id: user.id,
+            id: Uuid::from(user.id),
             name: user.name
         })
         .exec(&mut db)
@@ -82,6 +83,7 @@ mod tests {
     use uuid::Uuid;
 
     use crate::{
+        domain::model::user_id::UserId,
         infrastructure::service::cognito_identity_provider::CognitoIdentityProvider,
         test_support::{self, set_up, tear_down},
     };
@@ -95,7 +97,7 @@ mod tests {
         let user_repository = UserRepositoryImpl::new(db.clone());
         {
             let user = UserRecord::create()
-                .id(UserId::new())
+                .id(Uuid::from(UserId::new()))
                 .name(Name(EN).fake::<String>())
                 .exec(&mut db)
                 .await
@@ -110,12 +112,12 @@ mod tests {
                 .unwrap();
         }
         let user = UserRecord::create()
-            .id(UserId::new())
+            .id(Uuid::from(UserId::new()))
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
             .unwrap();
-        let expected_user_id = user.id;
+        let expected_user_id = UserId::from(user.id);
         let user_identity = UserIdentityRecord::create()
             .id(Uuid::now_v7())
             .user_id(user.id)
