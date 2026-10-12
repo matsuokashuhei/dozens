@@ -53,11 +53,7 @@ extension StubTimelineRepository {
 
     private static let followingRapperIDs: Set<Rapper.ID> = ["rapper-1", "rapper-3", "rapper-4"]
 
-    private static let beats = [
-        Beat(id: "beat-0", title: "Midnight Tokyo", artistName: "Dozens Beats"),
-        Beat(id: "beat-1", title: "Boom Bap Classic", artistName: "Dozens Beats"),
-        Beat(id: "beat-2", title: "Trap Rain", artistName: "Dozens Beats"),
-    ]
+    private static let beats = StubBeatRepository.catalog
 
     private static let videoURL = Bundle.module.url(forResource: "stub-rap", withExtension: "mp4")!
 

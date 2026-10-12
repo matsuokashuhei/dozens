@@ -62,6 +62,16 @@
         }
       }
     },
+    "Hook Up": {
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フックアップ"
+          }
+        }
+      }
+    },
     "Hookups": {
       "localizations": {
         "ja": {
