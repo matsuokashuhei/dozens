@@ -39,8 +39,8 @@ mod tests {
 
     #[test]
     fn test_user_relationship_new() {
-        let follower_id = UserId::generate();
-        let followee_id = UserId::generate();
+        let follower_id = UserId::new();
+        let followee_id = UserId::new();
         let relationship = UserRelationship::new(follower_id, followee_id).unwrap();
         assert!(Uuid::parse_str(&relationship.id.to_string()).is_ok());
         assert_eq!(relationship.follower_id, follower_id);
@@ -49,7 +49,7 @@ mod tests {
 
     #[test]
     fn test_user_relationship_new_rejects_self_follow() {
-        let user_id = UserId::generate();
+        let user_id = UserId::new();
         assert!(matches!(
             UserRelationship::new(user_id, user_id),
             Err(SelfFollow)
