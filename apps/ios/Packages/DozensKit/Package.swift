@@ -23,7 +23,12 @@ let package = Package(
     targets: [
         .target(name: "Domain", swiftSettings: coreSettings),
         .target(name: "Application", dependencies: ["Domain"], swiftSettings: coreSettings),
-        .target(name: "Infrastructure", dependencies: ["Domain"], swiftSettings: coreSettings),
+        .target(
+            name: "Infrastructure",
+            dependencies: ["Domain"],
+            resources: [.copy("Resources/stub-rap.mp4")],
+            swiftSettings: coreSettings
+        ),
         .target(name: "DesignSystem", resources: [.process("Resources")], swiftSettings: uiSettings),
         .target(
             name: "AuthFeature",
@@ -32,8 +37,14 @@ let package = Package(
             swiftSettings: uiSettings
         ),
         .target(
+            name: "TimelineFeature",
+            dependencies: ["Domain", "Application", "DesignSystem"],
+            resources: [.process("Resources")],
+            swiftSettings: uiSettings
+        ),
+        .target(
             name: "AppFeature",
-            dependencies: ["Domain", "Application", "Infrastructure", "DesignSystem", "AuthFeature"],
+            dependencies: ["Domain", "Application", "Infrastructure", "DesignSystem", "AuthFeature", "TimelineFeature"],
             resources: [.process("Resources")],
             swiftSettings: uiSettings
         ),
