@@ -9,3 +9,8 @@ snapshot_name = "20260923_160811_snapshot.toml"
 id = 2574845703019260188
 name = "20260924_053117_add_user_identities_table.sql"
 snapshot_name = "20260924_053117_snapshot.toml"
+
+[[migrations]]
+id = 674532917596568233
+name = "20261012_092858_add_user_relationships_table.sql"
+snapshot_name = "20261012_092858_snapshot.toml"
