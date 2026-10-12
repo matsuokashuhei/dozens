@@ -84,15 +84,3 @@ struct APIAuthRepositoryTests {
         }
     }
 }
-
-struct InMemoryTokenStoreTests {
-    @Test func savesLoadsAndClears() throws {
-        let store = InMemoryTokenStore()
-        let tokens = AuthTokens(accessToken: "a", refreshToken: "r", idToken: "i")
-        #expect(try store.load() == nil)
-        try store.save(tokens)
-        #expect(try store.load() == tokens)
-        try store.clear()
-        #expect(try store.load() == nil)
-    }
-}

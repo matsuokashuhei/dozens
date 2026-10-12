@@ -30,8 +30,9 @@ struct AuthFlowModelTests {
 
     @Test func codeIsSanitizedToSixDigits() {
         let (model, _) = makeModel()
-        model.codeText = "12a3 4567"
-        #expect(model.codeText == "123456")
+        model.codeText = "12a3 ４567"
+        model.codeTextDidChange()
+        #expect(model.codeText == "123567")
     }
 
     @Test func correctCodeSignsIn() async {

@@ -12,7 +12,7 @@ struct AppDependencies: Sendable {
             tokenStore = KeychainTokenStore()
         case .stub:
             authRepository = StubAuthRepository()
-            tokenStore = InMemoryTokenStore()
+            tokenStore = KeychainTokenStore(service: "app.dozens.ios.auth.stub")
         }
     }
 }

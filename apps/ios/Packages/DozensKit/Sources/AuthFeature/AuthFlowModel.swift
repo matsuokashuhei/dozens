@@ -11,12 +11,7 @@ public final class AuthFlowModel {
 
     public var path: [Route] = []
     public var emailText = ""
-    public var codeText = "" {
-        didSet {
-            let sanitized = String(codeText.filter(\.isNumber).prefix(OneTimeCode.length))
-            if sanitized != codeText { codeText = sanitized }
-        }
-    }
+    public var codeText = ""
 
     public var error: AuthError?
     public private(set) var pending: PendingVerification?
@@ -36,6 +31,19 @@ public final class AuthFlowModel {
 
     public var canSubmitCode: Bool {
         !isSubmitting && pending != nil && (try? OneTimeCode(codeText)) != nil
+    }
+
+    /// `codeText` を半角数字 `OneTimeCode.length` 桁に切り詰め、揃ったら送信する。
+    /// TextField の binding の中で書き換えると表示が追従しないので、`onChange` から呼ぶ。
+    public func codeTextDidChange() {
+        let sanitized = String(codeText.filter { $0.isASCII && $0.isNumber }.prefix(OneTimeCode.length))
+        guard sanitized == codeText else {
+            codeText = sanitized
+            return
+        }
+        if codeText.count == OneTimeCode.length {
+            Task { await submitCode() }
+        }
     }
 
     public func begin() {

@@ -27,10 +27,8 @@ struct CodeEntryView: View {
             .padding()
             .dozensGlassEffect(in: .rect(cornerRadius: 12))
             .accessibilityIdentifier("auth.code")
-            .onChange(of: model.codeText) { _, newValue in
-                if newValue.count == OneTimeCode.length {
-                    Task { await model.submitCode() }
-                }
+            .onChange(of: model.codeText) {
+                model.codeTextDidChange()
             }
             Button {
                 Task { await model.resendCode() }
