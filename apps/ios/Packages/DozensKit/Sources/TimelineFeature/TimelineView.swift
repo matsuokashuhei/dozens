@@ -38,10 +38,7 @@ public struct TimelineView: View {
     @ViewBuilder
     private var content: some View {
         if model.entries.isEmpty {
-            if model.isLoading {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if model.error != nil {
+            if model.error != nil {
                 ContentUnavailableView {
                     Label {
                         Text("Couldn't load the timeline.", bundle: .module)
@@ -55,7 +52,7 @@ public struct TimelineView: View {
                         Text("Retry", bundle: .module)
                     }
                 }
-            } else {
+            } else if model.isLoaded {
                 ContentUnavailableView {
                     Label {
                         Text("No Raps", bundle: .module)
@@ -63,6 +60,9 @@ public struct TimelineView: View {
                         Image(systemName: "music.mic")
                     }
                 }
+            } else {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         } else {
             List(model.entries) { entry in

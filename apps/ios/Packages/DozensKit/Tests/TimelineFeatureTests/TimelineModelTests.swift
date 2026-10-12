@@ -34,8 +34,10 @@ struct TimelineModelTests {
         await model.reload()
         model.feed = .featured
         #expect(model.entries.isEmpty)
+        #expect(!model.isLoaded)
         await model.reload()
         #expect(model.entries.map(\.id) == ["9"])
+        #expect(model.isLoaded)
     }
 
     @Test func failedReloadKeepsEntriesAndReportsError() async {

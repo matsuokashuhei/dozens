@@ -11,11 +11,13 @@ public final class TimelineModel {
             entries = []
             nextCursor = nil
             error = nil
+            isLoaded = false
         }
     }
 
     public private(set) var entries: [TimelineEntry] = []
-    public private(set) var isLoading = false
+    /// 現在のフィードを一度でも読み終えたか（失敗を含む）。読み込み前の空表示と「0 件」を区別する。
+    public private(set) var isLoaded = false
     public private(set) var error: TimelineError?
 
     private var nextCursor: String?
@@ -28,17 +30,17 @@ public final class TimelineModel {
 
     public func reload() async {
         let feed = self.feed
-        isLoading = true
-        defer { isLoading = false }
         do {
             let page = try await reader.page(of: feed, after: nil)
             guard feed == self.feed else { return }
             entries = page.entries
             nextCursor = page.nextCursor
             error = nil
+            isLoaded = true
         } catch {
             guard feed == self.feed else { return }
             self.error = error
+            isLoaded = true
         }
     }
 
