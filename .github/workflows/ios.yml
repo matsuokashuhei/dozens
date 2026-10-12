@@ -2,7 +2,7 @@ name: iOS
 
 on:
   push:
-    branches: [main, ios]
+    branches: [main]
     paths:
       - apps/ios/**
       - .github/workflows/ios.yml
