@@ -6,6 +6,10 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E70F7C00307C9661008B42BD /* AppFeature in Frameworks */ = {isa = PBXBuildFile; productRef = E70F7C01307C9661008B42BD /* AppFeature */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		E70F7BE5307C9661008B42BD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -51,6 +55,7 @@
 		E70F7BD2307C9660008B42BD /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				E70F7C00307C9661008B42BD /* AppFeature in Frameworks */,
 			);
 		};
 		E70F7BE1307C9661008B42BD /* Frameworks */ = {
@@ -103,6 +108,9 @@
 				E70F7BD7307C9660008B42BD /* Dozens */,
 			);
 			name = Dozens;
+			packageProductDependencies = (
+				E70F7C01307C9661008B42BD /* AppFeature */,
+			);
 			productName = Dozens;
 			productReference = E70F7BD5307C9660008B42BD /* Dozens.app */;
 			productType = "com.apple.product-type.application";
@@ -181,6 +189,9 @@
 			);
 			mainGroup = E70F7BCC307C9660008B42BD;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E70F7C02307C9661008B42BD /* XCLocalSwiftPackageReference "../Packages/DozensKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E70F7BD6307C9660008B42BD /* Products */;
 			projectDirPath = "";
@@ -397,7 +408,7 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
@@ -441,7 +452,7 @@
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
@@ -466,7 +477,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dozens.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dozens";
 				XROS_DEPLOYMENT_TARGET = 27.0;
@@ -492,7 +503,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Dozens.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Dozens";
 				XROS_DEPLOYMENT_TARGET = 27.0;
@@ -517,7 +528,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_TARGET_NAME = Dozens;
 				XROS_DEPLOYMENT_TARGET = 27.0;
@@ -542,7 +553,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_TARGET_NAME = Dozens;
 				XROS_DEPLOYMENT_TARGET = 27.0;
@@ -585,6 +596,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		E70F7C02307C9661008B42BD /* XCLocalSwiftPackageReference "../Packages/DozensKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../Packages/DozensKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E70F7C01307C9661008B42BD /* AppFeature */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppFeature;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E70F7BCD307C9660008B42BD /* Project object */;
 	validationLevel = 1;

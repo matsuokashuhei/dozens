@@ -1,9 +1,15 @@
-name: Quality
+name: API
 
 on:
   push:
     branches: [main]
+    paths:
+      - apps/api/**
+      - .github/workflows/api.yml
   pull_request:
+    paths:
+      - apps/api/**
+      - .github/workflows/api.yml
 
 env:
   CARGO_TERM_COLOR: always
