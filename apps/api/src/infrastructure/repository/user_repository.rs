@@ -95,7 +95,7 @@ mod tests {
         let user_repository = UserRepositoryImpl::new(db.clone());
         {
             let user = UserRecord::create()
-                .id(UserId::new_v7())
+                .id(UserId::generate())
                 .name(Name(EN).fake::<String>())
                 .exec(&mut db)
                 .await
@@ -110,7 +110,7 @@ mod tests {
                 .unwrap();
         }
         let user = UserRecord::create()
-            .id(UserId::new_v7())
+            .id(UserId::generate())
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await

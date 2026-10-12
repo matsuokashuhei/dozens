@@ -134,13 +134,13 @@ mod tests {
         let mut db = test_support::build_db_connection().await.unwrap();
         let repository = UserRelationshipRepositoryImpl::new(db.clone());
         let follower = UserRecord::create()
-            .id(UserId::new_v7())
+            .id(UserId::generate())
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
             .unwrap();
         let followee = UserRecord::create()
-            .id(UserId::new_v7())
+            .id(UserId::generate())
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
@@ -193,13 +193,13 @@ mod tests {
         let mut db = test_support::build_db_connection().await.unwrap();
         let repository = UserRelationshipRepositoryImpl::new(db.clone());
         let follower = UserRecord::create()
-            .id(UserId::new_v7())
+            .id(UserId::generate())
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
             .unwrap();
         let followee = UserRecord::create()
-            .id(UserId::new_v7())
+            .id(UserId::generate())
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await

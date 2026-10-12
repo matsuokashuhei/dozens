@@ -7,7 +7,7 @@ use uuid::Uuid;
 pub struct UserId(Uuid);
 
 impl UserId {
-    pub fn new_v7() -> Self {
+    pub fn generate() -> Self {
         Self(Uuid::now_v7())
     }
 
@@ -39,8 +39,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_user_id_new_v7() {
-        let user_id = UserId::new_v7();
+    fn test_user_id_generate() {
+        let user_id = UserId::generate();
         assert!(Uuid::parse_str(&user_id.to_string()).is_ok());
     }
 

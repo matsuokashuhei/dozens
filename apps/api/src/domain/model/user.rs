@@ -11,7 +11,7 @@ pub struct User {
 impl User {
     pub fn new(name: String) -> Self {
         Self {
-            id: UserId::new_v7(),
+            id: UserId::generate(),
             name,
         }
     }
