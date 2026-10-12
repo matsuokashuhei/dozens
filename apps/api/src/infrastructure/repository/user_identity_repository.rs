@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use crate::{
     domain::{
-        model::user_identity::UserIdentity,
+        model::{user_id::UserId, user_identity::UserIdentity},
         repository::{errors::RepositoryError, user_identity_repository::UserIdentityRepository},
     },
     infrastructure::repository::user_repository::UserRecord,
@@ -17,7 +17,7 @@ pub(crate) struct UserIdentityRecord {
     #[key]
     pub id: Uuid,
     #[index]
-    pub user_id: Uuid,
+    pub user_id: UserId,
     // TODO: When FK is supported, use it instead of the deferred relationship
     #[belongs_to(key = user_id, references = id)]
     pub user: toasty::Deferred<UserRecord>,

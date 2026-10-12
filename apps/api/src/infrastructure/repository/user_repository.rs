@@ -2,11 +2,10 @@ use async_trait::async_trait;
 use jiff::Timestamp;
 use toasty::Db;
 use toasty::stmt::{List, Query};
-use uuid::Uuid;
 
 use crate::{
     domain::{
-        model::user::User,
+        model::{user::User, user_id::UserId},
         repository::{errors::RepositoryError, user_repository::UserRepository},
     },
     infrastructure::repository::user_identity_repository::UserIdentityRecord,
@@ -16,7 +15,7 @@ use crate::{
 #[table = "users"]
 pub(crate) struct UserRecord {
     #[key]
-    pub id: Uuid,
+    pub id: UserId,
     pub name: String,
     #[auto]
     created_at: Timestamp,
@@ -80,6 +79,7 @@ impl UserRepository for UserRepositoryImpl {
 #[cfg(test)]
 mod tests {
     use fake::{Fake, faker::name::raw::Name, locales::EN};
+    use uuid::Uuid;
 
     use crate::{
         infrastructure::service::cognito_identity_provider::CognitoIdentityProvider,
@@ -95,7 +95,7 @@ mod tests {
         let user_repository = UserRepositoryImpl::new(db.clone());
         {
             let user = UserRecord::create()
-                .id(Uuid::now_v7())
+                .id(UserId::new_v7())
                 .name(Name(EN).fake::<String>())
                 .exec(&mut db)
                 .await
@@ -110,11 +110,12 @@ mod tests {
                 .unwrap();
         }
         let user = UserRecord::create()
-            .id(Uuid::now_v7())
+            .id(UserId::new_v7())
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
             .unwrap();
+        let expected_user_id = user.id;
         let user_identity = UserIdentityRecord::create()
             .id(Uuid::now_v7())
             .user_id(user.id)
@@ -127,7 +128,7 @@ mod tests {
             .get_user_by_sub(&user_identity.sub)
             .await
             .unwrap();
-        assert_eq!(user.id, user.id);
+        assert_eq!(user.id, expected_user_id);
         tear_down().await;
     }
 }
