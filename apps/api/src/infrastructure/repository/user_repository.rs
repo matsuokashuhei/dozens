@@ -12,11 +12,27 @@ use crate::{
     infrastructure::repository::user_identity_repository::UserIdentityRecord,
 };
 
+/// Storage-side user id, kept separate from the domain type so the domain stays toasty-free.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, toasty::Embed)]
+pub(crate) struct UserId(Uuid);
+
+impl From<crate::domain::model::user_id::UserId> for UserId {
+    fn from(id: crate::domain::model::user_id::UserId) -> Self {
+        Self(id.as_uuid())
+    }
+}
+
+impl From<UserId> for crate::domain::model::user_id::UserId {
+    fn from(id: UserId) -> Self {
+        Self::from(id.0)
+    }
+}
+
 #[derive(Debug, toasty::Model)]
 #[table = "users"]
 pub(crate) struct UserRecord {
     #[key]
-    pub id: Uuid,
+    pub id: UserId,
     pub name: String,
     #[auto]
     created_at: Timestamp,
@@ -51,7 +67,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn create_user(&self, user: User) -> Result<User, RepositoryError> {
         let mut db = self.db.clone();
         let record = toasty::create!(UserRecord {
-            id: Uuid::from(user.id),
+            id: UserId::from(user.id),
             name: user.name
         })
         .exec(&mut db)
@@ -83,7 +99,7 @@ mod tests {
     use uuid::Uuid;
 
     use crate::{
-        domain::model::user_id::UserId,
+        domain::model::user_id::UserId as DomainUserId,
         infrastructure::service::cognito_identity_provider::CognitoIdentityProvider,
         test_support::{self, set_up, tear_down},
     };
@@ -97,7 +113,7 @@ mod tests {
         let user_repository = UserRepositoryImpl::new(db.clone());
         {
             let user = UserRecord::create()
-                .id(Uuid::from(UserId::new()))
+                .id(UserId::from(DomainUserId::new()))
                 .name(Name(EN).fake::<String>())
                 .exec(&mut db)
                 .await
@@ -112,12 +128,12 @@ mod tests {
                 .unwrap();
         }
         let user = UserRecord::create()
-            .id(Uuid::from(UserId::new()))
+            .id(UserId::from(DomainUserId::new()))
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
             .unwrap();
-        let expected_user_id = UserId::from(user.id);
+        let expected_user_id = user.id;
         let user_identity = UserIdentityRecord::create()
             .id(Uuid::now_v7())
             .user_id(user.id)
@@ -130,7 +146,7 @@ mod tests {
             .get_user_by_sub(&user_identity.sub)
             .await
             .unwrap();
-        assert_eq!(user.id, expected_user_id);
+        assert_eq!(user.id, DomainUserId::from(expected_user_id));
         tear_down().await;
     }
 }

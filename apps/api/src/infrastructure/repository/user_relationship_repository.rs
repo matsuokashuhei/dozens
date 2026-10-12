@@ -126,7 +126,7 @@ mod tests {
     use fake::{Fake, faker::name::raw::Name, locales::EN};
 
     use crate::{
-        infrastructure::repository::user_repository::UserRecord,
+        infrastructure::repository::user_repository::{UserRecord, UserId as RecordUserId},
         test_support::{self, set_up, tear_down},
     };
 
@@ -139,13 +139,13 @@ mod tests {
         let follower_id = UserId::new();
         let followee_id = UserId::new();
         UserRecord::create()
-            .id(Uuid::from(follower_id))
+            .id(RecordUserId::from(follower_id))
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
             .unwrap();
         UserRecord::create()
-            .id(Uuid::from(followee_id))
+            .id(RecordUserId::from(followee_id))
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
@@ -200,13 +200,13 @@ mod tests {
         let follower_id = UserId::new();
         let followee_id = UserId::new();
         UserRecord::create()
-            .id(Uuid::from(follower_id))
+            .id(RecordUserId::from(follower_id))
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
             .unwrap();
         UserRecord::create()
-            .id(Uuid::from(followee_id))
+            .id(RecordUserId::from(followee_id))
             .name(Name(EN).fake::<String>())
             .exec(&mut db)
             .await
