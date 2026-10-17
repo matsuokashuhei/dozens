@@ -9,11 +9,17 @@ use super::{
     db::{build_db_connection, delete_records},
 };
 
+static MIGRATIONS: tokio::sync::OnceCell<()> = tokio::sync::OnceCell::const_new();
+
 pub(crate) async fn set_up() {
     let _ = tracing_subscriber::fmt::try_init();
     info!("Setting up test environment");
     let db = build_db_connection().await.unwrap();
-    toasty::embed_migrations!().apply(&db).await.unwrap();
+    MIGRATIONS
+        .get_or_init(|| async {
+            toasty::embed_migrations!().apply(&db).await.unwrap();
+        })
+        .await;
     tear_down().await;
 }
 

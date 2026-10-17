@@ -2,6 +2,7 @@ use thiserror::Error;
 use toasty::{Db, ModelSet};
 
 pub mod user_identity_repository;
+pub mod user_relationship_repository;
 pub mod user_repository;
 
 #[derive(Debug, Error)]
@@ -21,6 +22,7 @@ pub async fn build_db_connection(url: &str) -> Result<Db, DatabaseError> {
 fn models() -> ModelSet {
     toasty::models!(
         user_repository::UserRecord,
-        user_identity_repository::UserIdentityRecord
+        user_identity_repository::UserIdentityRecord,
+        user_relationship_repository::UserRelationshipRecord
     )
 }

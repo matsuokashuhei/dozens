@@ -12,11 +12,27 @@ use crate::{
     infrastructure::repository::user_identity_repository::UserIdentityRecord,
 };
 
+/// Storage-side user id, kept separate from the domain type so the domain stays toasty-free.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, toasty::Embed)]
+pub(crate) struct UserId(Uuid);
+
+impl From<crate::domain::model::user_id::UserId> for UserId {
+    fn from(id: crate::domain::model::user_id::UserId) -> Self {
+        Self(id.as_uuid())
+    }
+}
+
+impl From<UserId> for crate::domain::model::user_id::UserId {
+    fn from(id: UserId) -> Self {
+        Self::from(id.0)
+    }
+}
+
 #[derive(Debug, toasty::Model)]
 #[table = "users"]
 pub(crate) struct UserRecord {
     #[key]
-    pub id: Uuid,
+    pub id: UserId,
     pub name: String,
     #[auto]
     created_at: Timestamp,
@@ -30,7 +46,7 @@ pub(crate) struct UserRecord {
 impl From<UserRecord> for User {
     fn from(record: UserRecord) -> Self {
         User {
-            id: record.id,
+            id: record.id.into(),
             name: record.name,
         }
     }
@@ -51,7 +67,7 @@ impl UserRepository for UserRepositoryImpl {
     async fn create_user(&self, user: User) -> Result<User, RepositoryError> {
         let mut db = self.db.clone();
         let record = toasty::create!(UserRecord {
-            id: user.id,
+            id: UserId::from(user.id),
             name: user.name
         })
         .exec(&mut db)
@@ -80,54 +96,101 @@ impl UserRepository for UserRepositoryImpl {
 #[cfg(test)]
 mod tests {
     use fake::{Fake, faker::name::raw::Name, locales::EN};
+    use uuid::Uuid;
 
     use crate::{
+        domain::model::user_id::UserId as DomainUserId,
         infrastructure::service::cognito_identity_provider::CognitoIdentityProvider,
         test_support::{self, set_up, tear_down},
     };
 
     use super::*;
 
-    #[tokio::test]
-    async fn test_get_user_by_sub() {
-        set_up().await;
-        let mut db = test_support::build_db_connection().await.unwrap();
-        let user_repository = UserRepositoryImpl::new(db.clone());
-        {
-            let user = UserRecord::create()
-                .id(Uuid::now_v7())
-                .name(Name(EN).fake::<String>())
-                .exec(&mut db)
-                .await
-                .unwrap();
-            UserIdentityRecord::create()
-                .id(Uuid::now_v7())
-                .user_id(user.id)
-                .iss(CognitoIdentityProvider::issuer())
-                .sub(Uuid::now_v7().to_string())
-                .exec(&mut db)
-                .await
-                .unwrap();
-        }
-        let user = UserRecord::create()
-            .id(Uuid::now_v7())
+    /// `set_up()` / `tear_down()` wipe shared tables in the test database, so these DB tests
+    /// must not run concurrently with each other.
+    static DB_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
+    async fn build_db_connection() -> (Db, UserRepositoryImpl) {
+        let db = test_support::build_db_connection().await.unwrap();
+        let repository = UserRepositoryImpl::new(db.clone());
+        (db, repository)
+    }
+
+    async fn create_user_record(db: &mut Db, id: DomainUserId) -> UserRecord {
+        UserRecord::create()
+            .id(UserId::from(id))
             .name(Name(EN).fake::<String>())
-            .exec(&mut db)
+            .exec(db)
             .await
-            .unwrap();
-        let user_identity = UserIdentityRecord::create()
+            .unwrap()
+    }
+
+    async fn create_user_identity_record(db: &mut Db, user_id: UserId) -> UserIdentityRecord {
+        UserIdentityRecord::create()
             .id(Uuid::now_v7())
-            .user_id(user.id)
+            .user_id(user_id)
             .iss(CognitoIdentityProvider::issuer())
             .sub(Uuid::now_v7().to_string())
+            .exec(db)
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_create_user_with_success() {
+        let _guard = DB_LOCK.lock().await;
+        set_up().await;
+        let (mut db, repository) = build_db_connection().await;
+        let user = User::new(Name(EN).fake::<String>());
+
+        let created = repository.create_user(user.clone()).await.unwrap();
+
+        assert_eq!(created.id, user.id);
+        assert_eq!(created.name, user.name);
+        let records = Query::<List<UserRecord>>::all()
             .exec(&mut db)
             .await
             .unwrap();
-        let user = user_repository
+        assert!(
+            records
+                .iter()
+                .any(|r| r.id == UserId::from(user.id) && r.name == user.name)
+        );
+        tear_down().await;
+    }
+
+    #[tokio::test]
+    async fn test_get_user_by_sub_with_success() {
+        let _guard = DB_LOCK.lock().await;
+        set_up().await;
+        let (mut db, repository) = build_db_connection().await;
+        // an unrelated user with its own identity must not be returned
+        let unrelated = create_user_record(&mut db, DomainUserId::new()).await;
+        create_user_identity_record(&mut db, unrelated.id).await;
+        let target = create_user_record(&mut db, DomainUserId::new()).await;
+        let expected_name = target.name.clone();
+        let user_identity = create_user_identity_record(&mut db, target.id).await;
+
+        let user = repository
             .get_user_by_sub(&user_identity.sub)
             .await
             .unwrap();
-        assert_eq!(user.id, user.id);
+
+        assert_eq!(user.id, DomainUserId::from(target.id));
+        assert_eq!(user.name, expected_name);
+        tear_down().await;
+    }
+
+    #[tokio::test]
+    async fn test_get_user_by_sub_with_user_not_found() {
+        let _guard = DB_LOCK.lock().await;
+        set_up().await;
+        let (_db, repository) = build_db_connection().await;
+        let missing_sub = Uuid::now_v7().to_string();
+
+        let user = repository.get_user_by_sub(&missing_sub).await;
+
+        assert!(matches!(user, Err(RepositoryError::NotFound(_))));
         tear_down().await;
     }
 }

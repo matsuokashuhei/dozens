@@ -1,16 +1,17 @@
 use serde::Serialize;
-use uuid::Uuid;
+
+use crate::domain::model::user_id::UserId;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct User {
-    pub id: Uuid,
+    pub id: UserId,
     pub name: String,
 }
 
 impl User {
     pub fn new(name: String) -> Self {
         Self {
-            id: Uuid::now_v7(),
+            id: UserId::new(),
             name,
         }
     }
@@ -19,6 +20,7 @@ impl User {
 #[cfg(test)]
 mod tests {
     use fake::{Fake, faker::name::raw::Name, locales::EN};
+    use uuid::Uuid;
 
     use super::*;
 
