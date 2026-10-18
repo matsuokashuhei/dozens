@@ -54,7 +54,8 @@ mod tests {
             handler::sign_up_handler::SignUpHandler, router::sign_up_router::SignUpRouter,
         },
         test_support::{
-            TEST_EMAILS, build_cognito_identity_provider, build_db_connection, set_up_with_cognito, tear_down_with_cognito,
+            TEST_EMAILS, build_cognito_identity_provider, build_db_connection, set_up_with_cognito,
+            tear_down_with_cognito,
         },
     };
 

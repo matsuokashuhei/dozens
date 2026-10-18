@@ -7,8 +7,7 @@ use crate::{
     domain::{
         model::{user, user_relationship::UserRelationship},
         repository::{
-            errors::RepositoryError,
-            user_relationship_repository::UserRelationshipRepository,
+            errors::RepositoryError, user_relationship_repository::UserRelationshipRepository,
         },
     },
     infrastructure::repository::{map_db_error, user_repository::UserId},
@@ -72,16 +71,15 @@ impl UserRelationshipRepository for UserRelationshipRepositoryImpl {
         followee_id: user::UserId,
     ) -> Result<UserRelationship, RepositoryError> {
         let mut db = self.db.clone();
-        let record =
-            UserRelationshipRecord::filter_by_follower_id_and_followee_id(
-                UserId::from(follower_id),
-                UserId::from(followee_id),
-            )
-            .first()
-                .exec(&mut db)
-                .await
-                .map_err(map_db_error)?
-                .ok_or_else(|| RepositoryError::NotFound("UserRelationship not found".into()))?;
+        let record = UserRelationshipRecord::filter_by_follower_id_and_followee_id(
+            UserId::from(follower_id),
+            UserId::from(followee_id),
+        )
+        .first()
+        .exec(&mut db)
+        .await
+        .map_err(map_db_error)?
+        .ok_or_else(|| RepositoryError::NotFound("UserRelationship not found".into()))?;
         Ok(record.into())
     }
 
@@ -223,10 +221,7 @@ mod tests {
             .unwrap();
         let duplicate = repository.create_user_relationship(relationship).await;
 
-        assert!(matches!(
-            duplicate,
-            Err(RepositoryError::UniqueViolation)
-        ));
+        assert!(matches!(duplicate, Err(RepositoryError::UniqueViolation)));
         tear_down().await;
     }
 

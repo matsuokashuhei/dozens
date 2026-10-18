@@ -1,0 +1,14 @@
+{
+  "PostToolUse": [
+    {
+      "matcher": "^(edit|write|apply_patch)$",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "cargo fmt --all --manifest-path $DEVIN_PROJECT_DIR/apps/api/Cargo.toml",
+          "timeout": 30
+        }
+      ]
+    }
+  ]
+}

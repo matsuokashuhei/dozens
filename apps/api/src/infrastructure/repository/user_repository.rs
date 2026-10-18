@@ -9,9 +9,7 @@ use crate::{
         model::user::User,
         repository::{errors::RepositoryError, user_repository::UserRepository},
     },
-    infrastructure::repository::{
-        map_db_error, user_identity_repository::UserIdentityRecord,
-    },
+    infrastructure::repository::{map_db_error, user_identity_repository::UserIdentityRecord},
 };
 
 /// Storage-side user id, kept separate from the domain type so the domain stays toasty-free.
