@@ -170,6 +170,7 @@ dependencies = [
  "toasty",
  "toasty-cli",
  "tokio",
+ "tokio-postgres",
  "tokio-util",
  "tower",
  "tower-http 0.7.1",

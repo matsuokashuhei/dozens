@@ -6,4 +6,6 @@ pub enum RepositoryError {
     DatabaseError(String),
     #[error("{0}")]
     NotFound(String),
+    #[error("unique violation")]
+    UniqueViolation,
 }

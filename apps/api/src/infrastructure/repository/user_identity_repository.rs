@@ -7,7 +7,10 @@ use crate::{
         model::user_identity::UserIdentity,
         repository::{errors::RepositoryError, user_identity_repository::UserIdentityRepository},
     },
-    infrastructure::repository::user_repository::{UserRecord, UserId},
+    infrastructure::repository::{
+        map_db_error,
+        user_repository::{UserId, UserRecord},
+    },
 };
 
 #[derive(Debug, toasty::Model)]
@@ -61,7 +64,7 @@ impl UserIdentityRepository for UserIdentityRepositoryImpl {
         })
         .exec(&mut db)
         .await
-        .map_err(|e| RepositoryError::DatabaseError(e.to_string()))?;
+        .map_err(map_db_error)?;
         Ok(record.into())
     }
 }

@@ -11,7 +11,7 @@ use crate::{
             user_relationship_repository::UserRelationshipRepository,
         },
     },
-    infrastructure::repository::user_repository::UserId,
+    infrastructure::repository::{map_db_error, user_repository::UserId},
 };
 
 #[derive(Debug, toasty::Model)]
@@ -62,7 +62,7 @@ impl UserRelationshipRepository for UserRelationshipRepositoryImpl {
         })
         .exec(&mut db)
         .await
-        .map_err(|e| RepositoryError::DatabaseError(e.to_string()))?;
+        .map_err(map_db_error)?;
         Ok(record.into())
     }
 
@@ -80,7 +80,7 @@ impl UserRelationshipRepository for UserRelationshipRepositoryImpl {
             .first()
                 .exec(&mut db)
                 .await
-                .map_err(|e| RepositoryError::DatabaseError(e.to_string()))?
+                .map_err(map_db_error)?
                 .ok_or_else(|| RepositoryError::NotFound("UserRelationship not found".into()))?;
         Ok(record.into())
     }
@@ -93,7 +93,7 @@ impl UserRelationshipRepository for UserRelationshipRepositoryImpl {
         let records = UserRelationshipRecord::filter_by_follower_id(UserId::from(follower_id))
             .exec(&mut db)
             .await
-            .map_err(|e| RepositoryError::DatabaseError(e.to_string()))?;
+            .map_err(map_db_error)?;
         Ok(records.into_iter().map(Into::into).collect())
     }
 
@@ -105,7 +105,7 @@ impl UserRelationshipRepository for UserRelationshipRepositoryImpl {
         let records = UserRelationshipRecord::filter_by_followee_id(UserId::from(followee_id))
             .exec(&mut db)
             .await
-            .map_err(|e| RepositoryError::DatabaseError(e.to_string()))?;
+            .map_err(map_db_error)?;
         Ok(records.into_iter().map(Into::into).collect())
     }
 
@@ -121,7 +121,7 @@ impl UserRelationshipRepository for UserRelationshipRepositoryImpl {
             UserId::from(followee_id),
         )
         .await
-        .map_err(|e| RepositoryError::DatabaseError(e.to_string()))
+        .map_err(map_db_error)
     }
 }
 
@@ -223,7 +223,10 @@ mod tests {
             .unwrap();
         let duplicate = repository.create_user_relationship(relationship).await;
 
-        assert!(matches!(duplicate, Err(RepositoryError::DatabaseError(_))));
+        assert!(matches!(
+            duplicate,
+            Err(RepositoryError::UniqueViolation)
+        ));
         tear_down().await;
     }
 

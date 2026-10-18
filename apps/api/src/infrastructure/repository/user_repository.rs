@@ -9,7 +9,9 @@ use crate::{
         model::user::User,
         repository::{errors::RepositoryError, user_repository::UserRepository},
     },
-    infrastructure::repository::user_identity_repository::UserIdentityRecord,
+    infrastructure::repository::{
+        map_db_error, user_identity_repository::UserIdentityRecord,
+    },
 };
 
 /// Storage-side user id, kept separate from the domain type so the domain stays toasty-free.
@@ -72,7 +74,7 @@ impl UserRepository for UserRepositoryImpl {
         })
         .exec(&mut db)
         .await
-        .map_err(|e| RepositoryError::DatabaseError(e.to_string()))?;
+        .map_err(map_db_error)?;
         Ok(record.into())
     }
 
@@ -87,7 +89,7 @@ impl UserRepository for UserRepositoryImpl {
             .first()
             .exec(&mut db)
             .await
-            .map_err(|e| RepositoryError::DatabaseError(e.to_string()))?
+            .map_err(map_db_error)?
             .ok_or_else(|| RepositoryError::NotFound("User not found for sub".into()))?;
         Ok(record.into())
     }
