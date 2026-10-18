@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 
 use crate::domain::{
-    model::{user_id::UserId, user_relationship::UserRelationship},
+    model::{user::UserId, user_relationship::UserRelationship},
     repository::errors::RepositoryError,
 };
 

@@ -16,13 +16,13 @@ use crate::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, toasty::Embed)]
 pub(crate) struct UserId(Uuid);
 
-impl From<crate::domain::model::user_id::UserId> for UserId {
-    fn from(id: crate::domain::model::user_id::UserId) -> Self {
+impl From<crate::domain::model::user::UserId> for UserId {
+    fn from(id: crate::domain::model::user::UserId) -> Self {
         Self(id.as_uuid())
     }
 }
 
-impl From<UserId> for crate::domain::model::user_id::UserId {
+impl From<UserId> for crate::domain::model::user::UserId {
     fn from(id: UserId) -> Self {
         Self::from(id.0)
     }
@@ -99,7 +99,7 @@ mod tests {
     use uuid::Uuid;
 
     use crate::{
-        domain::model::user_id::UserId as DomainUserId,
+        domain::model::user,
         infrastructure::service::cognito_identity_provider::CognitoIdentityProvider,
         test_support::{self, set_up, tear_down},
     };
@@ -116,7 +116,7 @@ mod tests {
         (db, repository)
     }
 
-    async fn create_user_record(db: &mut Db, id: DomainUserId) -> UserRecord {
+    async fn create_user_record(db: &mut Db, id: user::UserId) -> UserRecord {
         UserRecord::create()
             .id(UserId::from(id))
             .name(Name(EN).fake::<String>())
@@ -165,9 +165,9 @@ mod tests {
         set_up().await;
         let (mut db, repository) = build_db_connection().await;
         // an unrelated user with its own identity must not be returned
-        let unrelated = create_user_record(&mut db, DomainUserId::new()).await;
+        let unrelated = create_user_record(&mut db, user::UserId::new()).await;
         create_user_identity_record(&mut db, unrelated.id).await;
-        let target = create_user_record(&mut db, DomainUserId::new()).await;
+        let target = create_user_record(&mut db, user::UserId::new()).await;
         let expected_name = target.name.clone();
         let user_identity = create_user_identity_record(&mut db, target.id).await;
 
@@ -176,7 +176,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(user.id, DomainUserId::from(target.id));
+        assert_eq!(user.id, user::UserId::from(target.id));
         assert_eq!(user.name, expected_name);
         tear_down().await;
     }

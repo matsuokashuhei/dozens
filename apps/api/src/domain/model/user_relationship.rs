@@ -1,7 +1,7 @@
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::domain::model::user_id::UserId;
+use crate::domain::model::user::UserId;
 
 #[derive(Debug, Clone)]
 pub struct UserRelationship {
