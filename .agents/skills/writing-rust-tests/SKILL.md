@@ -12,20 +12,31 @@ description: Use when adding, modifying, or reviewing Rust unit tests in this wo
 ## ルール 1: 命名は `test_<テスト対象のメソッド名>_<テストケース>`
 
 - `<テスト対象のメソッド名>` は検証するメソッド名そのものを書く。**型名・モジュール名を接頭辞として付けない**(テストは対象と同じファイルの `mod tests` にあるため、文脈で十分)。
-- `<テストケース>` は検証内容の短い説明(英語・snake_case)。
-- 成功ケースは `with_success` の形を使う。
-- テスト対象が入力を拒否するエラー(バリデーション違反・一意制約違反など)は `rejects_<原因>` の形を使う。
-- `NotFound` のように**「返す」結果として生じるエラー**は `with_<状態>` の形を使う(`with_not_found` / `with_user_not_found`)。
+- `<テストケース>` は検証内容の短い説明(英語・snake_case)。成否を動詞で先に述べる形に統一し、`succeeds` / `fails` を対にする。
+- 正常系(エラーを返さない)ケースは `succeeds` 系を使う。
+  - 無条件の成功は `succeeds` で終える(`test_new_succeeds`)。
+  - 前提条件がある成功は `succeeds_when_<条件>`(主語 + 述語の節。`succeeds_when_user_already_exists`)。
+  - 結果や状態が名詞句で述べたい場合は `succeeds_with_<名詞句>`(`succeeds_with_empty`)。
+- 失敗系(`Err` や panic を検証する)ケースは `fails_when_<失敗を引き起こす条件>` の形を使う。
+  - `<条件>` には失敗の**理由・エラー名ではなく発生条件**を、主語 + 述語の節で書く(`fails_when_follower_equals_followee`)。エラーバリアントはアサーション側で担保するため、名前に含めなくてよい。
+  - 接続詞は `when` を使う。`where` は状況・場所を導く語で条件提示には不自然。`with_failure_where_...` のように従属表現を重ねない。
+  - バリデーション違反・一意制約違反・`NotFound` のような「返す」エラーも、失敗系であることに変わりはないので `rejects_` / `with_<エラー>` ではなく `fails_when_<条件>` に統一する。
+  - 同一条件でも成否が分かれる場合は `succeeds_when_<条件>` と `fails_when_<条件>` が対になる(例: `request_sign_up` は失敗し、`sign_up` は成功する)。
 
 例:
 
 | 判定 | 名前 | 理由 |
 |---|---|---|
 | ❌ | `test_user_relationship_new` | `UserRelationship::new` の成否のみ。型名が付き、テストケースが無い |
-| ✅ | `test_new_with_success` | `new` + 成功ケース |
-| ✅ | `test_new_rejects_self_follow` | `new` + 自己フォローを拒否するケース |
-| ✅ | `test_create_user_relationship_rejects_duplicate` | `create_user_relationship` + 重複登録を拒否するケース |
-| ✅ | `test_get_user_relationship_with_not_found` | `get_user_relationship` + NotFound を返すケース |
+| ❌ | `test_new_with_failure_where_self_follow_is_not_allowed` | `where` 節が失敗条件ではなくエラー名を指し、従属表現も重複している |
+| ❌ | `test_confirm_sign_up_with_code_mismatch` | 失敗系なのに `with_<エラー>`。`fails_when_code_does_not_match` とする |
+| ❌ | `test_new_with_success` | `with_success` は旧形式。`succeeds` とする |
+| ✅ | `test_new_succeeds` | `new` + 無条件の成功ケース |
+| ✅ | `test_new_fails_when_follower_equals_followee` | `new` + 失敗条件(同一 ID を渡す) |
+| ✅ | `test_create_user_relationship_fails_when_relationship_already_exists` | `create_user_relationship` + 重複登録で失敗するケース |
+| ✅ | `test_get_user_relationship_fails_when_relationship_does_not_exist` | `get_user_relationship` + NotFound となる失敗条件 |
+| ✅ | `test_sign_up_succeeds_when_user_already_exists` | 既存ユーザーでもエラーにならない条件付きの正常系 |
+| ✅ | `test_list_user_relationships_by_follower_succeeds_with_empty` | 空リストを返す正常系 |
 
 ## ルール 2: 1 テスト関数 = 1 メソッド × 1 テストケース
 
@@ -37,14 +48,29 @@ description: Use when adding, modifying, or reviewing Rust unit tests in this wo
 
 分割後の例(`UserRelationshipRepository` の場合):
 
-- `test_create_user_relationship_with_success`
-- `test_get_user_relationship_with_success`
-- `test_list_user_relationships_by_follower_with_success`
-- `test_list_user_relationships_by_followee_with_success`
-- `test_delete_user_relationship_with_success`
+- `test_create_user_relationship_succeeds`
+- `test_get_user_relationship_succeeds`
+- `test_list_user_relationships_by_follower_succeeds`
+- `test_list_user_relationships_by_followee_succeeds`
+- `test_delete_user_relationship_succeeds`
 
 - **分割による準備(fake データ作成や setup)の重複は許容する。** このリポジトリーの DB テストは `set_up()` / `tear_down()` が各テストで分離を保証する。準備が冗長になったらデータ作成をテスト支援関数・fixture に切り出すこと(分岐やケースが異なるテストは絶対に融合させない)。
 - `#[tokio::test]` を要する async テスト、`#[test]` は sync テスト。既存の同種テストと一致させる。
+
+## ルール 3: 正常系の入力値は `fake` クレートで生成する
+
+- 値そのものに意味がなく「有効であること」だけが必要な入力(メール・名前など)はハードコードせず faker で生成する。`"A@B.com"` のような具体値は「その値でないと通らないのでは」という読み手の疑念を生む。
+- 対応する faker を使う: メール → `faker::internet::raw::FreeEmail`、名前 → `faker::name::raw::Name`、単語 → `faker::lorem::raw::Word`(いずれも `locales::EN`)。
+- 失敗条件であること自体が意味を持つ無効値(`"invalid-email"`、誤ったコード `"123456"` など)は faker にせず、条件が一目で分かるリテラルのままにする。
+- 外部サービスに実在が必要な値(Cognito の `TEST_EMAILS` など)も例外としてリテラルを許容する。
+
+例:
+
+| 判定 | コード | 理由 |
+|---|---|---|
+| ❌ | `Email::new("A@B.com")` | 有効な値なら何でもよいのに具体値を固定している |
+| ✅ | `let raw: String = FreeEmail(EN).fake(); Email::new(&raw)` | 有効なメールを faker で生成 |
+| ✅ | `Email::new("invalid-email")` | 無効であること自体が条件。リテラルで明示 |
 
 ## よくある言い訳
 
@@ -60,5 +86,9 @@ description: Use when adding, modifying, or reviewing Rust unit tests in this wo
 - テスト名に `_crud`, `_flow`, `_end_to_end` などの接尾辞が付く → 分割する
 - 名前が `test_` + メソッド名だけで終わる(ケース記述がない) → ケースを付ける
 - 名前に型名(`user_relationship_`, `user_`)が付く → 取り除いてメソッド名から始める
+- 失敗系なのに `with_<エラー>` / `rejects_<原因>` / `with_failure_where_` が使われている → `fails_when_<失敗条件>` に直す
+- 正常系なのに `with_success` / `with_<状態>` が使われている → `succeeds` / `succeeds_when_<条件>` / `succeeds_with_<名詞句>` に直す
+- `fails_when_` / `succeeds_when_` の後が名詞句だけで条件(主語 + 述語の節)になっていない → `fails_when_code_does_not_match` のような節に直す
+- 有効でさえあればよい入力値(メール・名前)をリテラルで書いている → `FreeEmail` / `Name` などの faker に置き換える
 
 Rust の構文規約 `#[test]` の設定方法や async テストの扱いは、既存の関連テストを現行実装として参照すること。このリポジトリーの例は `apps/api/src/infrastructure/repository/` 配下にある。
