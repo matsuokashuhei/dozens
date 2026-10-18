@@ -47,6 +47,7 @@ impl From<RepositoryError> for UsecaseError {
     fn from(error: RepositoryError) -> Self {
         match error {
             RepositoryError::NotFound(_) => Self::UserNotFound,
+            RepositoryError::UniqueViolation => Self::UserAlreadyExists,
             RepositoryError::DatabaseError(message) => Self::InternalError(message),
         }
     }

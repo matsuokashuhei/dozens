@@ -54,35 +54,40 @@ impl fmt::Display for Email {
 
 #[cfg(test)]
 mod tests {
+    use fake::{Fake, faker::internet::raw::FreeEmail, locales::EN};
+
     use super::*;
 
     #[test]
-    fn new_with_valid_email() {
-        let email = Email::new("A@B.com");
-        assert_eq!(email, Ok(Email("A@B.com".to_string())));
+    fn test_new_succeeds() {
+        let raw: String = FreeEmail(EN).fake();
+        let email = Email::new(&raw);
+        assert_eq!(email, Ok(Email(raw)));
     }
 
     #[test]
-    fn new_with_invalid_email() {
+    fn test_new_fails_when_email_is_invalid() {
         let email = Email::new("invalid-email");
         assert_eq!(email, Err(InvalidEmail));
     }
 
     #[test]
-    fn try_from_with_valid_email() {
-        let email = Email::try_from("A@B.com");
-        assert_eq!(email, Ok(Email("A@B.com".to_string())));
+    fn test_try_from_succeeds() {
+        let raw: String = FreeEmail(EN).fake();
+        let email = Email::try_from(raw.as_str());
+        assert_eq!(email, Ok(Email(raw)));
     }
 
     #[test]
-    fn try_from_with_invalid_email() {
+    fn test_try_from_fails_when_email_is_invalid() {
         let email = Email::try_from("invalid-email");
         assert_eq!(email, Err(InvalidEmail));
     }
 
     #[test]
-    fn fmt() {
-        let email = Email::new("ada@example.com").unwrap();
-        assert_eq!(email.to_string(), "ada@example.com");
+    fn test_fmt_succeeds() {
+        let raw: String = FreeEmail(EN).fake();
+        let email = Email::new(&raw).unwrap();
+        assert_eq!(email.to_string(), raw);
     }
 }

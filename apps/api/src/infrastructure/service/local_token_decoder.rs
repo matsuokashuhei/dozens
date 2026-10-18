@@ -95,7 +95,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn issued_access_token_passes_authentication() {
+    async fn test_decode_succeeds() {
         let decoder = LocalTokenDecoder::new();
         let sub = Uuid::now_v7().to_string();
         let token = issue_access_token(&sub, 3600).unwrap();
@@ -117,7 +117,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn rejects_invalid_token() {
+    async fn test_decode_fails_when_token_is_invalid() {
         let decoder = LocalTokenDecoder::new();
 
         let app = Router::new()

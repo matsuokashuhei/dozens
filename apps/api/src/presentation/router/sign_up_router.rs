@@ -54,14 +54,15 @@ mod tests {
             handler::sign_up_handler::SignUpHandler, router::sign_up_router::SignUpRouter,
         },
         test_support::{
-            TEST_EMAILS, build_cognito_identity_provider, build_db_connection, set_up, tear_down,
+            TEST_EMAILS, build_cognito_identity_provider, build_db_connection, set_up_with_cognito,
+            tear_down_with_cognito,
         },
     };
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_sign_up_router() {
-        set_up().await;
+    async fn test_sign_up_succeeds() {
+        set_up_with_cognito().await;
 
         let db = build_db_connection().await.unwrap();
         let user_repository = UserRepositoryImpl::new(db.clone());
@@ -99,6 +100,6 @@ mod tests {
         .await;
         assert!(user_identity.is_ok());
 
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 }

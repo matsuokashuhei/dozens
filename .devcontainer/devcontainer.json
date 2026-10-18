@@ -6,13 +6,14 @@
         "label": "desktop"
       }
     },
-    "initializeCommand": "bash ./.devcontainer/initialize.sh",
-    "runArgs": [
-        "--env-file",
-        "${localWorkspaceFolder}/.env.aws",
-        "--env-file",
-        "${localWorkspaceFolder}/.env.local"
-    ],
+    // "initializeCommand": "bash ./.devcontainer/initialize.sh",
+    // "runArgs": [
+    //     "--env-file",
+    //     "${localWorkspaceFolder}/.env.aws",
+    //     "--env-file",
+    //     "${localWorkspaceFolder}/.env.local"
+    // ],
+    "postCreateCommand": "bash ./.devcontainer/post-create.sh",
     "features": {
         "ghcr.io/devcontainers/features/common-utils:2": {},
         "ghcr.io/devcontainers/features/aws-cli:1": {},
@@ -36,6 +37,7 @@
                 "MermaidChart.vscode-mermaid-chart"
             ],
             "settings": {
+                "json.schemaDownload.enable": true,
                 "[json]": {
                     "editor.formatOnSave": true,
                     "editor.defaultFormatter": "esbenp.prettier-vscode"
