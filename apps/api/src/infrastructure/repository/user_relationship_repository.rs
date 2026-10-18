@@ -177,7 +177,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_create_user_relationship_with_success() {
+    async fn test_create_user_relationship_succeeds() {
         let _guard = DB_LOCK.lock().await;
         let (mut db, repository) = set_up_tests_db().await;
         let follower_id = UserId::new();
@@ -204,7 +204,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_create_user_relationship_rejects_duplicate() {
+    async fn test_create_user_relationship_fails_when_relationship_already_exists() {
         let _guard = DB_LOCK.lock().await;
         let (mut db, repository) = set_up_tests_db().await;
         let follower_id = UserId::new();
@@ -224,7 +224,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_user_relationship_with_success() {
+    async fn test_get_user_relationship_succeeds() {
         let _guard = DB_LOCK.lock().await;
         let (mut db, repository) = set_up_tests_db().await;
         let follower_id = UserId::new();
@@ -247,7 +247,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_user_relationship_with_not_found() {
+    async fn test_get_user_relationship_fails_when_relationship_does_not_exist() {
         let _guard = DB_LOCK.lock().await;
         let (_db, repository) = set_up_tests_db().await;
 
@@ -260,7 +260,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_list_user_relationships_by_follower_with_success() {
+    async fn test_list_user_relationships_by_follower_succeeds() {
         let _guard = DB_LOCK.lock().await;
         let (mut db, repository) = set_up_tests_db().await;
         let user_a = UserId::new();
@@ -286,7 +286,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_list_user_relationships_by_followee_with_success() {
+    async fn test_list_user_relationships_by_followee_succeeds() {
         let _guard = DB_LOCK.lock().await;
         let (mut db, repository) = set_up_tests_db().await;
         let user_a = UserId::new();
@@ -312,7 +312,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_list_user_relationships_by_follower_with_empty() {
+    async fn test_list_user_relationships_by_follower_succeeds_with_empty() {
         let _guard = DB_LOCK.lock().await;
         let (_db, repository) = set_up_tests_db().await;
 
@@ -326,7 +326,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_list_user_relationships_by_followee_with_empty() {
+    async fn test_list_user_relationships_by_followee_succeeds_with_empty() {
         let _guard = DB_LOCK.lock().await;
         let (_db, repository) = set_up_tests_db().await;
 
@@ -340,7 +340,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_delete_user_relationship_with_success() {
+    async fn test_delete_user_relationship_succeeds() {
         let _guard = DB_LOCK.lock().await;
         let (mut db, repository) = set_up_tests_db().await;
         let follower_id = UserId::new();

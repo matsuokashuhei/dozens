@@ -137,7 +137,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_create_user_with_success() {
+    async fn test_create_user_succeeds() {
         let _guard = DB_LOCK.lock().await;
         set_up().await;
         let (mut db, repository) = build_db_connection().await;
@@ -160,7 +160,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_user_by_sub_with_success() {
+    async fn test_get_user_by_sub_succeeds() {
         let _guard = DB_LOCK.lock().await;
         set_up().await;
         let (mut db, repository) = build_db_connection().await;
@@ -182,7 +182,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_user_by_sub_with_user_not_found() {
+    async fn test_get_user_by_sub_fails_when_user_does_not_exist() {
         let _guard = DB_LOCK.lock().await;
         set_up().await;
         let (_db, repository) = build_db_connection().await;

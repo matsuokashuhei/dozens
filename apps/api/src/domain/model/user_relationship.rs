@@ -1,5 +1,4 @@
-use std::fmt;
-
+use thiserror::Error;
 use uuid::Uuid;
 
 use crate::domain::model::user_id::UserId;
@@ -11,19 +10,16 @@ pub struct UserRelationship {
     pub followee_id: UserId,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct SelfFollow;
-
-impl fmt::Display for SelfFollow {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("self follow is not allowed")
-    }
+#[derive(Debug, Error, PartialEq)]
+pub enum UserRelationshipError {
+    #[error("self follow is not allowed")]
+    SelfFollowNotAllowed,
 }
 
 impl UserRelationship {
-    pub fn new(follower_id: UserId, followee_id: UserId) -> Result<Self, SelfFollow> {
+    pub fn new(follower_id: UserId, followee_id: UserId) -> Result<Self, UserRelationshipError> {
         if follower_id == followee_id {
-            return Err(SelfFollow);
+            return Err(UserRelationshipError::SelfFollowNotAllowed);
         }
         Ok(Self {
             id: Uuid::now_v7(),
@@ -38,7 +34,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_user_relationship_new() {
+    fn test_new_succeeds() {
         let follower_id = UserId::new();
         let followee_id = UserId::new();
         let relationship = UserRelationship::new(follower_id, followee_id).unwrap();
@@ -48,11 +44,11 @@ mod tests {
     }
 
     #[test]
-    fn test_user_relationship_new_rejects_self_follow() {
+    fn test_new_fails_when_follower_equals_followee() {
         let user_id = UserId::new();
         assert!(matches!(
             UserRelationship::new(user_id, user_id),
-            Err(SelfFollow)
+            Err(UserRelationshipError::SelfFollowNotAllowed)
         ));
     }
 }

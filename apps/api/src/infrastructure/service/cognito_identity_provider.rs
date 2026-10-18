@@ -518,26 +518,26 @@ mod tests {
 
     use crate::test_support::{
         TEST_EMAILS, build_cognito_identity_provider, create_cognito_user, fetch_confirmation_code,
-        set_up, tear_down,
+        set_up_with_cognito, tear_down_with_cognito,
     };
 
     use super::*;
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_sign_up_with_success() {
-        set_up().await;
+    async fn test_request_sign_up_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[0]).unwrap();
         let result = identity_provider.request_sign_up(email).await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_sign_up_with_user_already_exists() {
-        set_up().await;
+    async fn test_request_sign_up_fails_when_user_already_exists() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[0]).unwrap();
         let result = identity_provider.request_sign_up(email).await;
@@ -549,13 +549,13 @@ mod tests {
             result.err().unwrap(),
             IdentityProviderError::UserAlreadyExists
         );
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_confirm_sign_up_with_success() {
-        set_up().await;
+    async fn test_request_confirm_sign_up_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
         let output = identity_provider
@@ -568,13 +568,13 @@ mod tests {
             .request_confirm_sign_up(email.clone(), confirmation_code.clone())
             .await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_confirm_sign_up_with_code_mismatch() {
-        set_up().await;
+    async fn test_request_confirm_sign_up_fails_when_code_does_not_match() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
         identity_provider
@@ -586,12 +586,12 @@ mod tests {
             .await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap(), IdentityProviderError::CodeMismatch);
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_confirm_sign_up_with_user_not_found() {
+    async fn test_request_confirm_sign_up_fails_when_user_does_not_exist() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
         let result = identity_provider
@@ -603,8 +603,8 @@ mod tests {
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_sign_in_with_success() {
-        set_up().await;
+    async fn test_request_sign_in_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[2]).unwrap();
         let output = identity_provider
@@ -621,12 +621,12 @@ mod tests {
             .request_initiate_auth_with_email(email)
             .await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_sign_in_with_user_not_found() {
+    async fn test_request_sign_in_fails_when_user_does_not_exist() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
         let result = identity_provider
@@ -638,8 +638,8 @@ mod tests {
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_sign_in_with_user_not_confirmed() {
-        set_up().await;
+    async fn test_request_sign_in_fails_when_user_is_not_confirmed() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[2]).unwrap();
         identity_provider
@@ -654,13 +654,13 @@ mod tests {
             result.err().unwrap(),
             IdentityProviderError::UserNotConfirmed
         );
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_send_confirmation_code_with_success() {
-        set_up().await;
+    async fn test_request_send_confirmation_code_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[0]).unwrap();
         identity_provider
@@ -671,12 +671,12 @@ mod tests {
             .resend_confirmation_code(email.clone())
             .await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_send_confirmation_code_with_user_not_found() {
+    async fn test_request_send_confirmation_code_fails_when_user_does_not_exist() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
         let result = identity_provider
@@ -688,8 +688,8 @@ mod tests {
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_respond_to_auth_challenge_with_success() {
-        set_up().await;
+    async fn test_request_respond_to_auth_challenge_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
         let user_type = create_cognito_user(email.clone()).await.user.unwrap();
@@ -704,13 +704,13 @@ mod tests {
             )
             .await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_respond_to_auth_challenge_with_code_mismatch() {
-        set_up().await;
+    async fn test_request_respond_to_auth_challenge_fails_when_code_does_not_match() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
         create_cognito_user(email.clone()).await;
@@ -720,12 +720,12 @@ mod tests {
             .await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap(), IdentityProviderError::CodeMismatch);
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_respond_to_auth_challenge_with_user_not_found() {
+    async fn test_request_respond_to_auth_challenge_fails_when_user_does_not_exist() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
         let result = identity_provider
@@ -741,8 +741,8 @@ mod tests {
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_respond_to_auth_challenge_with_user_not_confirmed() {
-        set_up().await;
+    async fn test_request_respond_to_auth_challenge_fails_when_user_is_not_confirmed() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
         let result = identity_provider
@@ -761,13 +761,13 @@ mod tests {
             result.err().unwrap(),
             IdentityProviderError::UserNotConfirmed
         );
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_admin_get_user_with_success() {
-        set_up().await;
+    async fn test_request_admin_get_user_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[0]).unwrap();
         identity_provider
@@ -776,12 +776,12 @@ mod tests {
             .unwrap();
         let result = identity_provider.request_admin_get_user(email).await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_request_admin_get_user_with_user_not_found() {
+    async fn test_request_admin_get_user_fails_when_user_does_not_exist() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
         let result = identity_provider
@@ -793,19 +793,19 @@ mod tests {
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_sign_up_with_success() {
-        set_up().await;
+    async fn test_sign_up_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[0]).unwrap();
         let result = identity_provider.sign_up(email).await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_sign_up_with_user_already_exists() {
-        set_up().await;
+    async fn test_sign_up_succeeds_when_user_already_exists() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[0]).unwrap();
         let output = identity_provider
@@ -820,13 +820,13 @@ mod tests {
             .unwrap();
         let result = identity_provider.sign_up(email).await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_sign_up_with_user_not_confirmed() {
-        set_up().await;
+    async fn test_sign_up_succeeds_when_user_is_not_confirmed() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[0]).unwrap();
         identity_provider
@@ -835,13 +835,13 @@ mod tests {
             .unwrap();
         let result = identity_provider.sign_up(email).await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_confirm_sign_up() {
-        set_up().await;
+    async fn test_confirm_sign_up_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
         let output = identity_provider
@@ -854,13 +854,13 @@ mod tests {
             .confirm_sign_up(email.clone(), confirmation_code.clone())
             .await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_confirm_sign_up_with_code_mismatch() {
-        set_up().await;
+    async fn test_confirm_sign_up_fails_when_code_does_not_match() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
         identity_provider
@@ -872,12 +872,12 @@ mod tests {
             .await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap(), IdentityProviderError::CodeMismatch);
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_confirm_sign_up_with_user_not_found() {
+    async fn test_confirm_sign_up_fails_when_user_does_not_exist() {
         let identity_provider = build_cognito_identity_provider().await;
         let email: String = FreeEmail(EN).fake();
         let result = identity_provider
@@ -889,20 +889,20 @@ mod tests {
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_sign_in() {
-        set_up().await;
+    async fn test_sign_in_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[2]).unwrap();
         create_cognito_user(email.clone()).await;
 
         let result = identity_provider.sign_in(email).await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_sign_in_with_user_not_found() {
+    async fn test_sign_in_fails_when_user_does_not_exist() {
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[2]).unwrap();
         let result = identity_provider.sign_in(email).await;
@@ -912,7 +912,7 @@ mod tests {
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_sign_in_with_user_not_confirmed() {
+    async fn test_sign_in_fails_when_user_is_not_confirmed() {
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[2]).unwrap();
         identity_provider
@@ -925,13 +925,13 @@ mod tests {
             result.err().unwrap(),
             IdentityProviderError::UserNotConfirmed
         );
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_confirm_sign_in() {
-        set_up().await;
+    async fn test_confirm_sign_in_succeeds() {
+        set_up_with_cognito().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
         let output = create_cognito_user(email.clone()).await.user.unwrap();
         let identity_provider = build_cognito_identity_provider().await;
@@ -949,13 +949,13 @@ mod tests {
             )
             .await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_confirm_sign_in_with_code_mismatch() {
-        set_up().await;
+    async fn test_confirm_sign_in_fails_when_code_does_not_match() {
+        set_up_with_cognito().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
         create_cognito_user(email.clone()).await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -968,13 +968,13 @@ mod tests {
             .await;
         assert!(result.is_err());
         assert_eq!(result.err().unwrap(), IdentityProviderError::CodeMismatch);
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_confirm_sign_in_with_user_not_found() {
-        set_up().await;
+    async fn test_confirm_sign_in_fails_when_user_does_not_exist() {
+        set_up_with_cognito().await;
         let email = Email::new(TEST_EMAILS[1]).unwrap();
         create_cognito_user(email.clone()).await;
         let identity_provider = build_cognito_identity_provider().await;
@@ -996,8 +996,8 @@ mod tests {
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_sign_out() {
-        set_up().await;
+    async fn test_sign_out_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[2]).unwrap();
         let output = create_cognito_user(email.clone()).await.user.unwrap();
@@ -1010,13 +1010,13 @@ mod tests {
             .unwrap();
         let result = identity_provider.sign_out(result.access_token).await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_change_email_with_success() {
-        set_up().await;
+    async fn test_change_email_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[2]).unwrap();
         let cognito_user = create_cognito_user(email.clone()).await.user.unwrap();
@@ -1033,13 +1033,13 @@ mod tests {
             .change_email(access_token.clone(), email.clone())
             .await;
         assert!(result.is_ok());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 
     #[tokio::test]
     #[ignore = "requires AWS Cognito"]
-    async fn test_confirm_change_email_with_succcess() {
-        set_up().await;
+    async fn test_confirm_change_email_succeeds() {
+        set_up_with_cognito().await;
         let identity_provider = build_cognito_identity_provider().await;
         let email = Email::new(TEST_EMAILS[2]).unwrap();
         let cognito_user = create_cognito_user(email.clone()).await.user.unwrap();
@@ -1072,6 +1072,6 @@ mod tests {
             .and_then(|attribute| attribute.value())
             .unwrap();
         assert_eq!(email_attribute, email.as_str());
-        tear_down().await;
+        tear_down_with_cognito().await;
     }
 }

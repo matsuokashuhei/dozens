@@ -25,7 +25,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_user_new() {
+    fn test_new_succeeds() {
         let name: String = Name(EN).fake();
         let user = User::new(name.clone());
         assert!(Uuid::parse_str(&user.id.to_string()).is_ok());

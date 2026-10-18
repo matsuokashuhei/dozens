@@ -40,7 +40,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_user_id_new() {
+    fn test_new_succeeds() {
         let user_id = UserId::new();
         assert!(Uuid::parse_str(&user_id.to_string()).is_ok());
     }
