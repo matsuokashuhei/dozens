@@ -72,6 +72,40 @@ description: Use when adding, modifying, or reviewing Rust unit tests in this wo
 | ✅ | `let raw: String = FreeEmail(EN).fake(); Email::new(&raw)` | 有効なメールを faker で生成 |
 | ✅ | `Email::new("invalid-email")` | 無効であること自体が条件。リテラルで明示 |
 
+## リファクタリング時の注意
+
+- 改名・分割・構成の見直しをしても、既存のテストケースやアサーションを削除・弱体化しない。テスト数と検証内容は維持か増強のみ。
+- すでに規約に合っているテスト・ヘルパー・同期ガードは変更しない。規約違反の箇所だけを直す。
+- DB を共有するテスト同士の直列化(`DB_LOCK` など)は維持する。`set_up()` / `tear_down()` が共通テーブルを消すため、並列実行すると不安定になる。
+- エラーケースは `assert!(matches!(result, Err(ErrorType::Variant)))` のようにバリアントまで検証する。`is_err()` だけで終わらせない。
+
+## 検証コマンド
+
+cargo などの Rust コマンドはホストでは直接実行しない。`apps/compose.yml` の docker compose に定義された `api` サービス(Rust コンテナ)で実行する。コンテナからテスト DB には `postgres_test:5432` で到達するため `DATABASE_URL` を指定する。
+
+```sh
+# テスト DB の起動(リポジトリーのルートで)
+docker compose -f apps/compose.yml up -d --wait postgres_test
+
+# api コンテナのビルド(初回のみ)
+docker compose -f apps/compose.yml build api
+
+# cargo の実行例(--rm で使い捨てコンテナ)
+COMPOSE="docker compose -f apps/compose.yml"
+$COMPOSE run --rm api cargo fmt --all
+$COMPOSE run --rm api cargo clippy --all-targets --all-features -- -Dwarnings
+$COMPOSE run --rm \
+  --env-from-file .env.test \
+  -e GITHUB_ACTIONS=true \
+  -e DATABASE_URL=postgresql://postgres:postgres@postgres_test:5432/dozens_test \
+  api cargo test --all-features
+```
+
+- `--env-from-file .env.test` は `AWS_REGION` / `AWS_COGNITO_*` をコンテナに渡すため。
+- `GITHUB_ACTIONS=true` は Cognito ユーザーの後片付けをスキップするローカル実行用の指定。
+- `DATABASE_URL` は `test_support::build_db_connection` が読む。未指定時はホスト実行用の `localhost:5433` が使われる。
+- リンク時に OOM(signal 9)になったら `cargo test --all-features -j 2` でリトライする。
+
 ## よくある言い訳
 
 | 言い訳 | 現実 |

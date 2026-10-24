@@ -23,6 +23,17 @@ services:
       timeout: 5s
       retries: 30
       start_period: 5s
+  api:
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+      target: dev
+    working_dir: /dozens/apps/api
+    ports:
+      - 3000:3000
+    volumes:
+      - ..:/dozens
+    command: ["sleep", "infinity"]
 
 volumes:
   postgres_data:
