@@ -81,7 +81,7 @@ description: Use when adding, modifying, or reviewing Rust unit tests in this wo
 
 ## 検証コマンド
 
-cargo などの Rust コマンドはホストでは直接実行しない。`apps/compose.yml` の docker compose に定義された `api` サービス(Rust コンテナ)で実行する。コンテナからテスト DB には `postgres_test:5432` で到達するため `DATABASE_URL` を指定する。
+cargo などの Rust コマンドは、ホストに存在するならそのまま実行してよい。存在しない場合も勝手にインストールせず、`apps/compose.yml` の docker compose に定義された `api` サービス(Rust コンテナ)で実行する。コンテナからテスト DB には `postgres_test:5432` で到達するため `DATABASE_URL` を指定する。
 
 ```sh
 # テスト DB の起動(リポジトリーのルートで)
@@ -90,7 +90,7 @@ docker compose -f apps/compose.yml up -d --wait postgres_test
 # api コンテナのビルド(初回のみ)
 docker compose -f apps/compose.yml build api
 
-# cargo の実行例(--rm で使い捨てコンテナ)
+# ホストに cargo が無い場合の実行例(--rm で使い捨てコンテナ)
 COMPOSE="docker compose -f apps/compose.yml"
 $COMPOSE run --rm api cargo fmt --all
 $COMPOSE run --rm api cargo clippy --all-targets --all-features -- -Dwarnings
