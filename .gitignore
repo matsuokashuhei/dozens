@@ -62,3 +62,4 @@ tmbootpicker.efi
 !.env.example
 !.env.test
 *.zip
+node_modules/

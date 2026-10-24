@@ -15,6 +15,8 @@ pub enum UsecaseError {
     UserNotConfirmed,
     #[error("user already exists")]
     UserAlreadyExists,
+    #[error("self follow is not allowed")]
+    SelfFollowNotAllowed,
     #[error("code delivery failure")]
     CodeDeliveryFailure,
     #[error("code mismatch")]
