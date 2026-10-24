@@ -131,14 +131,10 @@ mod tests {
 
     use crate::{
         infrastructure::repository::user_repository::UserRecord,
-        test_support::{self, set_up, tear_down},
+        test_support::{self, DB_LOCK, set_up, tear_down},
     };
 
     use super::*;
-
-    /// `set_up()` / `tear_down()` wipe shared tables in the test database, so these DB tests
-    /// must not run concurrently with each other.
-    static DB_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
     async fn set_up_tests_db() -> (Db, UserRelationshipRepositoryImpl) {
         set_up().await;

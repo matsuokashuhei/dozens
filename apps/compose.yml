@@ -34,6 +34,14 @@ services:
     volumes:
       - ..:/dozens
     command: ["sleep", "infinity"]
+  swagger:
+    image: node:24-alpine
+    working_dir: /dozens/apps/swagger
+    ports:
+      - 8080:8080
+    volumes:
+      - ..:/dozens
+    command: sh -c "npm install && npm start"
 
 volumes:
   postgres_data:

@@ -5,7 +5,6 @@ use axum::http::StatusCode;
 use axum::http::request::Parts;
 use axum::response::{IntoResponse, Response};
 use axum::{Extension, Json, RequestPartsExt};
-use serde::Serialize;
 
 use crate::{
     application::usecase::{
@@ -13,7 +12,10 @@ use crate::{
         errors::UsecaseError,
     },
     domain::model::user::User,
-    presentation::middleware::token_authenticator::{TokenAuthenticator, TokenAuthenticatorError},
+    presentation::{
+        errors::ErrorBody,
+        middleware::token_authenticator::{TokenAuthenticator, TokenAuthenticatorError},
+    },
 };
 
 #[derive(Debug)]
@@ -71,22 +73,23 @@ where
     }
 }
 
-#[derive(Serialize)]
-struct ErrorBody {
-    code: &'static str,
-}
-
 impl IntoResponse for UserAuthenticatorError {
     fn into_response(self) -> Response {
         match self {
             UserAuthenticatorError::Token(error) => error.into_response(),
-            UserAuthenticatorError::UserNotFound => {
-                (StatusCode::NOT_FOUND, Json(ErrorBody { code: "not_found" })).into_response()
-            }
+            UserAuthenticatorError::UserNotFound => (
+                StatusCode::NOT_FOUND,
+                Json(ErrorBody {
+                    code: "not_found",
+                    message: "user not found".to_string(),
+                }),
+            )
+                .into_response(),
             UserAuthenticatorError::Unavailable => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 Json(ErrorBody {
                     code: "unavailable",
+                    message: "unavailable".to_string(),
                 }),
             )
                 .into_response(),

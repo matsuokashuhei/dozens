@@ -10,14 +10,16 @@ use api::{
             change_email_usecase::ChangeEmailUsecase,
             confirm_change_email_usecase::ConfirmChangeEmailUsecase,
             confirm_sign_in_usecase::ConfirmSignInUsecase,
-            confirm_sign_up_usecase::ConfirmSignUpUsecase, sign_in_usecase::SignInUsecase,
-            sign_out_usecase::SignOutUsecase, sign_up_usecase::SignUpUsecase,
+            confirm_sign_up_usecase::ConfirmSignUpUsecase, follow_user_usecase::FollowUserUsecase,
+            sign_in_usecase::SignInUsecase, sign_out_usecase::SignOutUsecase,
+            sign_up_usecase::SignUpUsecase, unfollow_user_usecase::UnfollowUserUsecase,
         },
     },
     domain::repository::user_repository::UserRepository,
     infrastructure::{
         repository::{
             build_db_connection, user_identity_repository::UserIdentityRepositoryImpl,
+            user_relationship_repository::UserRelationshipRepositoryImpl,
             user_repository::UserRepositoryImpl,
         },
         service::{
@@ -30,18 +32,20 @@ use api::{
             change_email_handler::ChangeEmailHandler,
             confirm_change_email_handler::ConfirmChangeEmailHandler,
             confirm_sign_in_handler::ConfirmSignInHandler,
-            confirm_sign_up_handler::ConfirmSignUpHandler, get_user_handler::GetUserHandler,
-            sign_in_handler::SignInHandler, sign_out_handler::SignOutHandler,
-            sign_up_handler::SignUpHandler,
+            confirm_sign_up_handler::ConfirmSignUpHandler, follow_user_handler::FollowUserHandler,
+            get_user_handler::GetUserHandler, sign_in_handler::SignInHandler,
+            sign_out_handler::SignOutHandler, sign_up_handler::SignUpHandler,
+            unfollow_user_handler::UnfollowUserHandler,
         },
         middleware::token_authenticator,
         router::{
             change_email_router::ChangeEmailRouter,
             confirm_change_email_router::ConfirmChangeEmailRouter,
             confirm_sign_in_router::ConfirmSignInRouter,
-            confirm_sign_up_router::ConfirmSignUpRouter, get_user_router::GetUserRouter,
-            sign_in_router::SignInRouter, sign_out_router::SignOutRouter,
-            sign_up_router::SignUpRouter,
+            confirm_sign_up_router::ConfirmSignUpRouter, follow_user_router::FollowUserRouter,
+            get_user_router::GetUserRouter, sign_in_router::SignInRouter,
+            sign_out_router::SignOutRouter, sign_up_router::SignUpRouter,
+            unfollow_user_router::UnfollowUserRouter,
         },
     },
 };
@@ -118,6 +122,15 @@ async fn main() -> Result<()> {
     let authenticate_user_usecase = Arc::new(AuthenticateUserUsecase::new(user_repository.clone()));
     let get_user_handler = GetUserHandler::new();
     let get_user_router = GetUserRouter::new(Arc::new(get_user_handler));
+    // follow
+    let user_relationship_repository = Arc::new(UserRelationshipRepositoryImpl::new(db.clone()));
+    let follow_user_usecase = FollowUserUsecase::new(user_relationship_repository.clone());
+    let follow_user_handler = FollowUserHandler::new(Arc::new(follow_user_usecase));
+    let follow_user_router = FollowUserRouter::new(Arc::new(follow_user_handler));
+    // unfollow
+    let unfollow_user_usecase = UnfollowUserUsecase::new(user_relationship_repository.clone());
+    let unfollow_user_handler = UnfollowUserHandler::new(Arc::new(unfollow_user_usecase));
+    let unfollow_user_router = UnfollowUserRouter::new(Arc::new(unfollow_user_handler));
     // build app
     let app = Router::new()
         .route("/health", get(|| async { StatusCode::OK }))
@@ -129,6 +142,8 @@ async fn main() -> Result<()> {
         .merge(change_email_router.routes())
         .merge(confirm_change_email_router.routes())
         .merge(get_user_router.routes())
+        .merge(follow_user_router.routes())
+        .merge(unfollow_user_router.routes())
         .layer(token_authenticator::extension(decoder))
         .layer(Extension(authenticate_user_usecase))
         .layer(TraceLayer::new_for_http());

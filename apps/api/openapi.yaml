@@ -1,0 +1,115 @@
+openapi: 3.2.1
+info:
+  title: Dozens API
+  version: 0.1.0
+  description: |
+    Dozens API のうち、ユーザーのフォロー / アンフォローを扱う。
+servers:
+  - url: http://localhost:3000
+    description: Local development
+security:
+  - bearerAuth: []
+tags:
+  - name: follow
+    description: ユーザーのフォロー関係
+paths:
+  /follow:
+    post:
+      operationId: followUser
+      summary: ユーザーをフォローする
+      description: |
+        認証済みユーザーがボディで指定した相手をフォローする。
+        すでにフォロー済みの場合も成功とする(べき等)。
+      tags:
+        - follow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FollowRequestBody'
+      responses:
+        '204':
+          description: フォローした。すでにフォロー済みでも 204 を返す。
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /follow/{followee_id}:
+    delete:
+      operationId: unfollowUser
+      summary: ユーザーのフォローを解除する
+      description: |
+        認証済みユーザーがパスで指定した相手へのフォローを解除する。
+        フォローしていない場合も成功とする(べき等)。
+      tags:
+        - follow
+      parameters:
+        - name: followee_id
+          in: path
+          required: true
+          description: フォローを解除する相手のユーザー ID。
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: フォローを解除した。フォローしていなくても 204 を返す。
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Cognito が発行したアクセストークンを `Authorization: Bearer <token>` で送る。
+  schemas:
+    FollowRequestBody:
+      type: object
+      description: フォローする相手を指定する。
+      required:
+        - followee_id
+      properties:
+        followee_id:
+          type: string
+          format: uuid
+          description: フォローする相手のユーザー ID。自分自身は指定できない。
+    Error:
+      type: object
+      description: 共通のエラーレスポンス。
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: 機械可読なエラー識別子。
+        message:
+          type: string
+          description: 人間可読な説明。
+  responses:
+    BadRequest:
+      description: リクエストが不正。自分自身をフォローしようとした場合など。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: 認証されていない。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: サーバー内部エラー。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

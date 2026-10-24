@@ -1,3 +1,5 @@
+use crate::application::service::identity_provider::Claims;
+use crate::presentation::errors::ErrorBody;
 use axum::extract::FromRequestParts;
 use axum::http::StatusCode;
 use axum::http::request::Parts;
@@ -7,9 +9,6 @@ use axum_extra::TypedHeader;
 use axum_extra::headers::Authorization;
 use axum_extra::headers::authorization::Bearer;
 use axum_jwt_auth::Decoder;
-use serde::Serialize;
-
-use crate::application::service::identity_provider::Claims;
 
 #[derive(Debug)]
 pub struct TokenAuthenticator {
@@ -70,19 +69,25 @@ where
     }
 }
 
-#[derive(Serialize)]
-struct ErrorBody {
-    code: &'static str,
-}
-
 impl IntoResponse for TokenAuthenticatorError {
     fn into_response(self) -> Response {
-        let (status, code) = match self {
-            TokenAuthenticatorError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized"),
-            TokenAuthenticatorError::Unavailable => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "unavailable")
+        let (status, code, message) = match self {
+            TokenAuthenticatorError::Unauthorized => {
+                (StatusCode::UNAUTHORIZED, "unauthorized", "unauthorized")
             }
+            TokenAuthenticatorError::Unavailable => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "unavailable",
+                "unavailable",
+            ),
         };
-        (status, Json(ErrorBody { code })).into_response()
+        (
+            status,
+            Json(ErrorBody {
+                code,
+                message: message.to_string(),
+            }),
+        )
+            .into_response()
     }
 }

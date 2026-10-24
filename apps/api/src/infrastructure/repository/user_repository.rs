@@ -101,14 +101,10 @@ mod tests {
     use crate::{
         domain::model::user,
         infrastructure::service::cognito_identity_provider::CognitoIdentityProvider,
-        test_support::{self, set_up, tear_down},
+        test_support::{self, DB_LOCK, set_up, tear_down},
     };
 
     use super::*;
-
-    /// `set_up()` / `tear_down()` wipe shared tables in the test database, so these DB tests
-    /// must not run concurrently with each other.
-    static DB_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
     async fn build_db_connection() -> (Db, UserRepositoryImpl) {
         let db = test_support::build_db_connection().await.unwrap();
